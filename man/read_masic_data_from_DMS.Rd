@@ -4,12 +4,18 @@
 \alias{read_masic_data_from_DMS}
 \title{Reading MASIC results from PNNL's DMS}
 \usage{
-read_masic_data_from_DMS(data_pkg, interference_score = FALSE)
+read_masic_data_from_DMS(
+  data_package_num,
+  interference_score = FALSE,
+  id_quant_table = FALSE
+)
 }
 \arguments{
-\item{data_pkg}{(Numeric or Character vector) containing Data Package ID(s) located in DMS}
+\item{data_package_num}{(Numeric or Character vector) containing Data Package ID(s) located in DMS}
 
 \item{interference_score}{(logical) read interference score. Default is FALSE.}
+
+\item{id_quant_table}{(logical)}
 }
 \value{
 (data.frame) with reporter ion intensities and other metrics

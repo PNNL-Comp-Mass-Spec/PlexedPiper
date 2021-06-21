@@ -1,23 +1,24 @@
 #' Reading MASIC results from PNNL's DMS
 #'
-#' @param dataPkg (Numeric or Character vector) containing Data Package ID(s) located in DMS
-#' @param interferenceScore (logical) read interference score. Default is FALSE.
+#' @param data_package_num (Numeric or Character vector) containing Data Package ID(s) located in DMS
+#' @param interference_score (logical) read interference score. Default is FALSE.
+#' @param id_quant_table (logical) 
 #' @return (data.frame) with reporter ion intensities and other metrics
 #' @importFrom dplyr select
 #' @importFrom plyr llply
 #' @importFrom data.table rbindlist
 #' @export read_masic_data_from_DMS
 
-read_masic_data_from_DMS <- function(dataPkg, interferenceScore=FALSE, 
-                                     idQuantTable = FALSE){
+read_masic_data_from_DMS <- function(data_package_num, interference_score=FALSE, 
+                                     id_quant_table = FALSE){
    on.exit(gc(), add = TRUE)
 
    # Fetch job records for data package(s)
-   if(length(dataPkg) > 1){
-      jobRecords <- lapply(dataPkg, get_job_records_by_dataset_package)
+   if(length(data_package_num) > 1){
+      jobRecords <- lapply(data_package_num, get_job_records_by_dataset_package)
       jobRecords <- Reduce(rbind, jobRecords)
    }else{
-      jobRecords <- get_job_records_by_dataset_package(dataPkg)
+      jobRecords <- get_job_records_by_dataset_package(data_package_num)
    }
 
    jobRecords <- jobRecords[grepl("MASIC", jobRecords$Tool),]
@@ -31,7 +32,7 @@ read_masic_data_from_DMS <- function(dataPkg, interferenceScore=FALSE,
              starts_with("Ion"), 
              -contains("Resolution"))
    
-   if (idQuantTable) {
+   if (id_quant_table) {
       quantIDTable <- make_id_to_quant_scan_link_table(masicList[["_ScanStatsEx.txt"]][,-2]) %>%
          rename(ScanNumber = QuantScan)
       masicData <- inner_join(quantIDTable, masicData, 
@@ -40,7 +41,7 @@ read_masic_data_from_DMS <- function(dataPkg, interferenceScore=FALSE,
          rename(ScanNumber = IDScan)
    }
 
-   if (interferenceScore) {
+   if (interference_score) {
       masicStats <- masicList[["_SICstats.txt"]] %>% 
          select(-2) %>%
          select(Dataset, 
