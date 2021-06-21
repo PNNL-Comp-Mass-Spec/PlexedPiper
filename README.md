@@ -13,7 +13,7 @@ data. The key inputs are:
 
 ```R
 if(!require("remotes", quietly = T)) install.packages("remotes")
-remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TRUE)
+remotes::install_github("PNNL-Comp-Mass-Spec/PlexedPiper", build_vignettes = TRUE)
 library(PlexedPiper)
 vignette("tmt_pipeline_v1")
 ```
