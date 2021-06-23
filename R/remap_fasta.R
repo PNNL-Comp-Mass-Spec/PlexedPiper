@@ -35,7 +35,6 @@
 
 
 #' @export
-#' @rdname remap_accessions_refseq_to_gene_fasta
 remap_accessions_refseq_to_gene_fasta <- function(path_to_FASTA,
                                             organism_name,
                                             conversion_table){
@@ -91,7 +90,6 @@ remap_accessions_refseq_to_gene_fasta <- function(path_to_FASTA,
 
 
 #' @export
-#' @rdname remap_accessions_uniprot_to_gene_fasta
 remap_accessions_uniprot_to_gene_fasta <- function(path_to_FASTA){
 
    is_compressed <- FALSE

@@ -3,7 +3,7 @@ title: |
     Suggested TMT processing pipeline. Variant 1.
 
 vignette: >
-  %\VignetteIndexEntry{Suggested TMT processing pipeline. Variant 1.}
+  %\VignetteIndexEntry{tmt_pipeline_v1}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 

@@ -11,9 +11,6 @@ make_id_to_quant_scan_link_table(
   threshold = NULL
 )
 }
-\arguments{
-\item{pathToFile}{}
-}
 \value{
 (data.table) with reporter ion intensities and other metrics
 }

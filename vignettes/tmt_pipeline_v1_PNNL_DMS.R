@@ -11,6 +11,7 @@ if(!is_PNNL_DMS_connection_successful()){
 
 ## ----libraries-------------------------------------------------------------
 library(PlexedPiper)
+library(PNNL.DMS.utils)
 library(MSnID)
 
 ## ----msms------------------------------------------------------------------

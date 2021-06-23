@@ -4,7 +4,7 @@ title: |
     Version for PNNL DMS.
 
 vignette: >
-  %\VignetteIndexEntry{tmt_pipeline_v1_PNNL_DMS}
+  %\VignetteIndexEntry{tmt_pipeline_global_PNNL_DMS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 
@@ -22,6 +22,7 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE)
 
 ```{r libraries}
 library(PlexedPiper)
+library(PNNL.DMS.utils)
 library(MSnID)
 ```
 
