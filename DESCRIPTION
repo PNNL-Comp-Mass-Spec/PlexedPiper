@@ -23,7 +23,6 @@ Imports:
    plyr,
    IRanges,
    MSnbase,
-   odbc,
    purrr,
    tibble,
    tidyr,
