@@ -36,6 +36,9 @@ Imports:
    MSnbase,
    purrr,
    tibble
-Remotes: github::vladpetyuk/PlexedPiperTestData, github::vladpetyuk/MSnID
+Remotes:
+   github::PNNL-Comp-Mass-Spec/MSnID,
+   github::PNNL-Comp-Mass-Spec/PNNL.DMS.utils,
+   github::PNNL-Comp-Mass-Spec/PlexedPiperTestData
 biocViews:
 VignetteBuilder: knitr

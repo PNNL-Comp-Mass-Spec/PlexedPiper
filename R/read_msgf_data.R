@@ -5,7 +5,7 @@
 #' @param path_to_MSGF_results (path string) to directory with MSGF results for all datasets
 #' @return (MSnID) MSnID object
 #' @importFrom dplyr mutate
-#' @importFrom MSnID MSnID
+#' @importFrom MSnID MSnID convert_msgf_output_to_msnid
 #' @importMethodsFrom MSnID psms<-
 #' @examples
 #' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
@@ -35,25 +35,6 @@ read_msgf_data <- function(path_to_MSGF_results, suffix = NULL){
 }
 
 
-# helper function
-convert_msgf_output_to_msnid <- function(x){
-   suppressMessages(msnid <- MSnID("."))
-   x <- x %>% mutate(accession = Protein,
-             calculatedMassToCharge = (MH + (Charge-1)*MSnID:::.PROTON_MASS)/Charge,
-             chargeState = Charge,
-             experimentalMassToCharge = PrecursorMZ,
-             isDecoy = grepl("^XXX", Protein),
-             spectrumFile = Dataset,
-             spectrumID = Scan) %>%
-      rename(peptide = Peptide)
-   # clean peptide sequences
-   x <- mutate(x, pepSeq = MSnID:::.get_clean_peptide_sequence(peptide))
-   
-   psms(msnid) <- x
-   
-   return(msnid)
-}
-#' 
 
 #' # (yet) non-exported helper function
 #' #' @importFrom Biostrings AA_STANDARD
