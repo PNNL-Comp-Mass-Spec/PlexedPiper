@@ -42,7 +42,7 @@ RUN apt-get update \
  libxml2-dev \
  libnetcdf-dev \
  libssl-dev
-RUN R -e 'remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TRUE)'
+RUN R -e 'remotes::install_github("PNNL-Comp-Mass-Spec/PlexedPiper", build_vignettes = TRUE)'
 ```
 
 ## MacOS installation
