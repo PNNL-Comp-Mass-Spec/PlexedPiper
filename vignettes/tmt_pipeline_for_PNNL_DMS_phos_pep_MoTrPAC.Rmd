@@ -64,7 +64,7 @@ This simply reads parsed to text output of MS-GF+ search engine. The text files
 are collated together and the resulting `data.frame` used to create MSnID object.
 
 ```{r msms}
-msnid <- read_msms_data_from_DMS(data_package_num)
+msnid <- read_msgf_data_from_DMS(data_package_num)
 show(msnid)
 ```
 

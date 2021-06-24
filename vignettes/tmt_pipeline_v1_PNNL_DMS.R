@@ -15,7 +15,7 @@ library(PNNL.DMS.utils)
 library(MSnID)
 
 ## ----msms------------------------------------------------------------------
-msnid <- read_msms_data_from_DMS(3442)
+msnid <- read_msgf_data_from_DMS(3442)
 show(msnid)
 
 ## ----correct_isotopes------------------------------------------------------
