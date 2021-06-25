@@ -1,7 +1,5 @@
 #' Finding Links from PNNL's DMS
 #'
-#' @param pathToFile 
-#' @param fileNamePttrn
 #' @return (data.table) with reporter ion intensities and other metrics
 #' @importFrom dplyr select
 #' @importFrom data.table data.table

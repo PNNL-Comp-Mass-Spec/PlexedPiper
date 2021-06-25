@@ -2,6 +2,8 @@
 % Please edit documentation in R/filter_msgf_data.R
 \name{filter_msgf_data}
 \alias{filter_msgf_data}
+\alias{filter_msgf_data_peptide_level}
+\alias{filter_msgf_data_protein_level}
 \title{Filtering MSGF Data}
 \usage{
 filter_msgf_data(
@@ -11,6 +13,10 @@ filter_msgf_data(
   n.iter.grid = 500,
   n.iter.nm = 100
 )
+
+filter_msgf_data_peptide_level(msnid, ...)
+
+filter_msgf_data_protein_level(msnid, ...)
 }
 \arguments{
 \item{msnid}{(MSnID object) collated MSGF output}

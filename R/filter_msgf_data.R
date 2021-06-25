@@ -25,7 +25,6 @@
 #' 
 
 #' @export
-#' @rdname filter_msgf_data
 filter_msgf_data <- function(msnid,
                              level,
                              fdr.max=0.01,
@@ -64,13 +63,13 @@ filter_msgf_data <- function(msnid,
 
 
 #' @export
-#' @rdname filter_msgf_data_peptide_level
+#' @rdname filter_msgf_data
 filter_msgf_data_peptide_level <- function(msnid, ...) {
    filter_msgf_data(msnid, level="peptide", ...)
 }
 
 #' @export
-#' @rdname filter_msgf_data_protein_level
+#' @rdname filter_msgf_data
 filter_msgf_data_protein_level <- function(msnid, ...) {
    filter_msgf_data(msnid, level="accession", ...)
 }

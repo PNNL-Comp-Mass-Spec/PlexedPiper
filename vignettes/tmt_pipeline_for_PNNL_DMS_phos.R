@@ -4,6 +4,7 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE)
 
 ## ----libraries, eval=FALSE-------------------------------------------------
 #  library(PlexedPiper)
+#  library(PNNL.DMS.utils)
 #  library(MSnID)
 #  library(tidyverse)
 

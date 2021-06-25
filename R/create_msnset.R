@@ -2,7 +2,7 @@
 #'
 #' Creates MSnSet object from quantitative crosstab and attached phenotype data.
 #'
-#' @paran crosstab (matrix) with log2-transformed relative reporter ion intensities.
+#' @param crosstab (matrix) with log2-transformed relative reporter ion intensities.
 #' Row names are the names of the measured species.
 #' Column names are the names of the samples.
 #' @param samples (table) matches sample names to reporter ions

@@ -23,7 +23,6 @@ Imports:
    plyr,
    IRanges,
    MSnbase,
-   odbc,
    purrr,
    tibble,
    tidyr,
@@ -37,6 +36,8 @@ Imports:
    MSnbase,
    purrr,
    tibble
-Remotes: github::PNNL-Comp-Mass-Spec/PlexedPiperTestData, github::PNNL-Comp-Mass-Spec/MSnID
+Remotes:
+   github::PNNL-Comp-Mass-Spec/MSnID,
+   github::PNNL-Comp-Mass-Spec/PlexedPiperTestData
 biocViews:
 VignetteBuilder: knitr

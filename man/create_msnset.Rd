@@ -7,6 +7,10 @@
 create_msnset(crosstab, samples)
 }
 \arguments{
+\item{crosstab}{(matrix) with log2-transformed relative reporter ion intensities.
+Row names are the names of the measured species.
+Column names are the names of the samples.}
+
 \item{samples}{(table) matches sample names to reporter ions}
 }
 \value{
