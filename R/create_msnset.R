@@ -45,7 +45,7 @@
 
 create_msnset <- function(crosstab, samples) {
    
-   m <- MSnSet(crosstab)
+   m <- MSnSet(as.matrix(crosstab))
    
    p <- as.data.frame(samples)
    p <- p[!is.na(p$MeasurementName), ]
