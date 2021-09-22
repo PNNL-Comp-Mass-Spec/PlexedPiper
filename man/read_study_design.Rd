@@ -12,12 +12,10 @@ read_study_design(path_to_study_design)
 \item{dataPkgNumber}{(integer) data package number for DMS}
 }
 \description{
-Fetches study design results from either local folder of DMS.
+Fetches study design results from local folder.
 Checks that study design files are internally consistent.
-DMS functionality not useful outside of PNNL unless connected through VPN.
 
 * `read_study_design()`: returns a list of study design tables, accessible by $
-* `read_study_design_from_DMS()`: finds data package folder in DMS and calls read_study_design there
 }
 \examples{
 study_design <- read_study_design("data/study_design_folder")
@@ -26,10 +24,4 @@ fractions  <- study_design$fractions
 samples    <- study_design$samples
 references <- study_design$references
 
-
-study_design <- read_study_design_from_DMS(3606)
-
-fractions  <- study_design$fractions
-samples    <- study_design$samples
-references <- study_design$references
 }
