@@ -1,6 +1,6 @@
 Package: PlexedPiper
 Type: Package
-Title: Pipeline for isobaric quantification.
+Title: Pipeline for isobaric quantification
 Version: 0.1.8
 Author: Vladislav Petyuk vladislav.petyuk@pnnl.gov
 Maintainer: Vladislav Petyuk <vladislav.petyuk@pnnl.gov>
@@ -9,33 +9,30 @@ Description: More about what it does (maybe more than one line)
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Depends:
-    MSnID (>= 1.18.1),
-    PlexedPiperTestData
+    MSnID (>= 1.18.1)
 Imports:
    AnnotationHub,
    AnnotationDbi,
    Biostrings,
-   BiocStyle,
    data.table,
-   dplyr,
    plyr,
+   dplyr,
    IRanges,
    MSnbase,
+   PlexedPiperTestData,
    purrr,
    tibble,
    tidyr,
    tidyselect,
    tools,
-   knitr,
-   rmarkdown,
-   readr,
+   readr
+Suggests:
+   BiocStyle,
    Rcpp,
-   IRanges,
-   MSnbase,
-   purrr,
-   tibble
+   knitr,
+   rmarkdown
 Remotes:
    github::PNNL-Comp-Mass-Spec/MSnID,
    github::PNNL-Comp-Mass-Spec/PlexedPiperTestData

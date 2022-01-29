@@ -16,6 +16,7 @@ make_rii_peptide_gl(
   fractions,
   samples,
   references,
+  annotation,
   org_name = "Rattus norvegicus"
 )
 
@@ -25,6 +26,7 @@ make_results_ratio_gl(
   fractions,
   samples,
   references,
+  annotation,
   org_name = "Rattus norvegicus"
 )
 
@@ -34,6 +36,7 @@ make_rii_peptide_ph(
   fractions,
   samples,
   references,
+  annotation,
   org_name = "Rattus norvegicus",
   sep = "_"
 )
@@ -44,6 +47,7 @@ make_results_ratio_ph(
   fractions,
   samples,
   references,
+  annotation,
   org_name = "Rattus norvegicus",
   sep = "_"
 )
