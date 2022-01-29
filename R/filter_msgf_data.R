@@ -13,7 +13,7 @@
 #' @return (MSnID object) filtered MSGF output
 #'
 #' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter mass_measurement_error apply_filter
-#' @import data.table
+#' @importFrom data.table `:=`
 #'
 #' @examples
 #' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
@@ -26,7 +26,7 @@
 #' msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 #' msnid <- filter_msgf_data(msnid, "accession", 0.01) # 1% FDR at protein level
 #' show(msnid)
-#' 
+#'
 
 #' @export
 filter_msgf_data <- function(msnid,
@@ -34,7 +34,7 @@ filter_msgf_data <- function(msnid,
                              fdr.max=0.01,
                              n.iter.grid=500,
                              n.iter.nm=100){
-  
+
    on.exit(invisible(gc())) # hidden garbage control on exit
 
   # Check input
@@ -71,7 +71,7 @@ filter_msgf_data <- function(msnid,
     filtObj$peptides_per_1000aa <- list(comparison = ">", threshold = 1)
     method <- "SANN"
   }
-   
+
    # step 1
    filtObj.grid <- optimize_filter(filtObj,
                                    msnid_small,
