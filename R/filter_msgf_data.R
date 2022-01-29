@@ -13,7 +13,7 @@
 #' @return (MSnID object) filtered MSGF output
 #'
 #' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter mass_measurement_error apply_filter
-#' @importFrom data.table `:=`
+#' @import data.table
 #'
 #' @examples
 #' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
