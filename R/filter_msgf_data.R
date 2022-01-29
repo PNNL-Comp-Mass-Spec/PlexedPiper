@@ -9,8 +9,12 @@
 #' @param level (character) Level at which to perform FDR filter
 #' @param n.iter.grid (numeric) number of grid-distributed evaluation points. Default 500.
 #' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization algorithm. Default 100.
+#'
 #' @return (MSnID object) filtered MSGF output
+#'
 #' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter mass_measurement_error apply_filter
+#' @importFrom data.table `:=`
+#'
 #' @examples
 #' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
@@ -30,30 +34,54 @@ filter_msgf_data <- function(msnid,
                              fdr.max=0.01,
                              n.iter.grid=500,
                              n.iter.nm=100){
-   # setup
-   if (level == "peptide") {
-      msnid$msmsScore <- -log10(msnid$PepQValue)
-      msnid$absParentMassErrorPPM <- abs(mass_measurement_error(msnid))
-      filtObj <- MSnIDFilter(msnid)
-      filtObj$absParentMassErrorPPM <- list(comparison="<", threshold=10.0)
-      filtObj$msmsScore <- list(comparison=">", threshold=2.0)
-      method <- "Nelder-Mead"
-   } else if (level == "accession") {
-      filtObj <- MSnIDFilter(msnid)
-      filtObj$peptides_per_1000aa <- list(comparison=">", threshold=1.0)
-      method <- "SANN"
-   }
+  
+   on.exit(invisible(gc())) # hidden garbage control on exit
+
+  # Check input
+  level <- match.arg(level, choices = c("peptide", "accession"))
+
+  keep_cols <- c(level, "isDecoy") # columns to calculate FDR
+
+  # Setup
+  if (level == "peptide") {
+    # Create columns for peptide filtering criteria
+    msnid@psms[, `:=` (msmsScore = -log10(PepQValue),
+                       absParentMassErrorPPM = abs(1e+06 * (experimentalMassToCharge -
+                                                              calculatedMassToCharge) /
+                                                     calculatedMassToCharge))]
+
+    # Create MSnID of minimum size
+    suppressMessages(msnid_small <- MSnID())
+    keep_cols <- c(keep_cols, "msmsScore", "absParentMassErrorPPM") # add filter criteria columns
+    msnid_small@psms <- unique(msnid@psms[, keep_cols, with = FALSE])
+
+    # Create filter object
+    filtObj <- MSnIDFilter(msnid_small)
+    filtObj$absParentMassErrorPPM <- list(comparison = "<", threshold = 10)
+    filtObj$msmsScore <- list(comparison = ">", threshold = 2)
+    method <- "Nelder-Mead"
+  } else {
+    # Create MSnID of minimum size
+    suppressMessages(msnid_small <- MSnID())
+    keep_cols <- c(keep_cols, "peptides_per_1000aa") # add filter criteria column
+    msnid_small@psms <- unique(msnid@psms[, keep_cols, with = FALSE])
+
+    # Create filter object
+    filtObj <- MSnIDFilter(msnid_small)
+    filtObj$peptides_per_1000aa <- list(comparison = ">", threshold = 1)
+    method <- "SANN"
+  }
    
    # step 1
    filtObj.grid <- optimize_filter(filtObj,
-                                   msnid,
+                                   msnid_small,
                                    fdr.max=fdr.max,
                                    method="Grid",
                                    level=level,
                                    n.iter=n.iter.grid)
    # step 2
    filtObj.nm <- optimize_filter(filtObj.grid,
-                                 msnid,
+                                 msnid_small,
                                  fdr.max=fdr.max,
                                  method=method,
                                  level=level,
