@@ -13,7 +13,6 @@
 #' @return (MSnID object) filtered MSGF output
 #'
 #' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter mass_measurement_error apply_filter
-#' @importFrom data.table `:=`
 #'
 #' @examples
 #' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
@@ -35,7 +34,9 @@ filter_msgf_data <- function(msnid,
                              n.iter.grid=500,
                              n.iter.nm=100){
 
-   on.exit(invisible(gc())) # hidden garbage control on exit
+  # Clean up on exit
+  on.exit(rm(list = ls()))
+  on.exit(gc(verbose = FALSE), add = TRUE)
 
   # Check input
   level <- match.arg(level, choices = c("peptide", "accession"))
@@ -44,15 +45,17 @@ filter_msgf_data <- function(msnid,
 
   # Setup
   if (level == "peptide") {
-    # Create columns for peptide filtering criteria
-    msnid@psms[, `:=` (msmsScore = -log10(PepQValue),
-                       absParentMassErrorPPM = abs(1e+06 * (experimentalMassToCharge -
-                                                              calculatedMassToCharge) /
-                                                     calculatedMassToCharge))]
+    # Create columns for peptide filtering
+    # Can not use data.table syntax if the msnid has been modified at all,
+    # as it results in the "Invalid .internal.selfref" warning and
+    # columns not being created.
+    msnid$msmsScore <- -log10(msnid$PepQValue)
+    msnid$absParentMassErrorPPM <- abs(mass_measurement_error(msnid))
 
     # Create MSnID of minimum size
     suppressMessages(msnid_small <- MSnID())
-    keep_cols <- c(keep_cols, "msmsScore", "absParentMassErrorPPM") # add filter criteria columns
+    # add filter criteria columns
+    keep_cols <- c(keep_cols, "msmsScore", "absParentMassErrorPPM")
     msnid_small@psms <- unique(msnid@psms[, keep_cols, with = FALSE])
 
     # Create filter object
@@ -72,32 +75,32 @@ filter_msgf_data <- function(msnid,
     method <- "SANN"
   }
 
-   # step 1
-   filtObj.grid <- optimize_filter(filtObj,
-                                   msnid_small,
-                                   fdr.max=fdr.max,
-                                   method="Grid",
-                                   level=level,
-                                   n.iter=n.iter.grid)
-   # step 2
-   filtObj.nm <- optimize_filter(filtObj.grid,
-                                 msnid_small,
-                                 fdr.max=fdr.max,
-                                 method=method,
-                                 level=level,
-                                 n.iter=n.iter.nm)
-   apply_filter(msnid, filtObj.nm)
+  # step 1
+  filtObj.grid <- optimize_filter(filtObj,
+                                  msnid_small,
+                                  fdr.max=fdr.max,
+                                  method="Grid",
+                                  level=level,
+                                  n.iter=n.iter.grid)
+  # step 2
+  filtObj.nm <- optimize_filter(filtObj.grid,
+                                msnid_small,
+                                fdr.max=fdr.max,
+                                method=method,
+                                level=level,
+                                n.iter=n.iter.nm)
+  return(apply_filter(msnid, filtObj.nm))
 }
 
 
 #' @export
 #' @rdname filter_msgf_data
 filter_msgf_data_peptide_level <- function(msnid, ...) {
-   filter_msgf_data(msnid, level="peptide", ...)
+  filter_msgf_data(msnid, level="peptide", ...)
 }
 
 #' @export
 #' @rdname filter_msgf_data
 filter_msgf_data_protein_level <- function(msnid, ...) {
-   filter_msgf_data(msnid, level="accession", ...)
+  filter_msgf_data(msnid, level="accession", ...)
 }
