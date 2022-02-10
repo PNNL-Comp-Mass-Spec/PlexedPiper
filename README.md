@@ -1,5 +1,10 @@
 # PlexedPiper
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/workflows/R-CMD-check/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions)
+<!-- badges: end -->
+
+
 R package used at PNNL for processing isobaric labeling (e.g. TMT) proteomics
 data. The key inputs are:
 * MS/MS identifications from the [MS-GF+ search engine](https://github.com/MSGFPlus/msgfplus)
