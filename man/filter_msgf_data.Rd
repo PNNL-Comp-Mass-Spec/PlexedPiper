@@ -23,30 +23,38 @@ filter_msgf_data_protein_level(msnid, ...)
 
 \item{level}{(character) Level at which to perform FDR filter}
 
-\item{fdr.max}{(numeric) Maximum acceptable FDR rate. Default is 0.01.}
+\item{fdr.max}{(numeric) Maximum acceptable FDR. Default is 0.01 (1\%).}
 
-\item{n.iter.grid}{(numeric) number of grid-distributed evaluation points. Default 500.}
+\item{n.iter.grid}{(numeric) number of grid-distributed evaluation points.}
 
-\item{n.iter.nm}{(numeric) number of iterations for Nelder-Mead optimization algorithm. Default 100.}
+\item{n.iter.nm}{(numeric) number of iterations for Nelder-Mead optimization
+algorithm.}
+
+\item{...}{arguments passed to \code{filter_msgf_data}.}
 }
 \value{
 (MSnID object) filtered MSGF output
 }
 \description{
-Filtering MSGF data. In this implementation the peptide level filter optimizes both ppm and
-PepQValue thresholds to achieve maximum number of peptide identifications within
-given FDR constrain.
+Filtering MSGF data. In this implementation the peptide level filter
+optimizes both ppm and PepQValue thresholds to achieve maximum number of
+peptide identifications within given FDR constrain.
 }
 \examples{
-path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+\dontrun{
+path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+                                    package = "PlexedPiperTestData")
 msnid <- read_msgf_data(path_to_MSGF_results)
 msnid <- MSnID::correct_peak_selection(msnid)
 show(msnid)
 msnid <- filter_msgf_data(msnid, "peptide", 0.01) # 1\% FDR at peptide level
 show(msnid)
-path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", package = "PlexedPiperTestData")
+path_to_FASTA <- system.file(
+  "extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz",
+  package = "PlexedPiperTestData"
+)
 msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 msnid <- filter_msgf_data(msnid, "accession", 0.01) # 1\% FDR at protein level
 show(msnid)
-
+}
 }

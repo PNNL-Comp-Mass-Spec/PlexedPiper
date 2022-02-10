@@ -7,18 +7,20 @@
 read_study_design(path_to_study_design)
 }
 \arguments{
-\item{path_to_folder}{(string) path to folder containing study design files}
-
-\item{dataPkgNumber}{(integer) data package number for DMS}
+\item{path_to_study_design}{(character) path to folder containing study
+design files.}
+}
+\value{
+A list of study design tables, accessible by \code{$} or \verb{[]}.
 }
 \description{
-Fetches study design results from local folder.
-Checks that study design files are internally consistent.
-
-* `read_study_design()`: returns a list of study design tables, accessible by $
+Fetches study design results from local folder. Checks that
+study design files are internally consistent.
 }
 \examples{
-study_design <- read_study_design("data/study_design_folder")
+path_to_study_design <- system.file("extdata/study_design",
+                                    package = "PlexedPiperTestData")
+study_design <- read_study_design(path_to_study_design)
 
 fractions  <- study_design$fractions
 samples    <- study_design$samples

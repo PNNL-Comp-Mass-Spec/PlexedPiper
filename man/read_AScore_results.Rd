@@ -7,16 +7,20 @@
 read_AScore_results(path_to_AScore_results)
 }
 \arguments{
-\item{path_to_AScore_results}{(character) Path to AScore results}
+\item{path_to_AScore_results}{(character) path to folder containing
+a file ending in "_syn_ascore.txt".}
 }
 \value{
-ascore (data.frame) AScore results
+\code{\link[base]{data.frame}} of AScore results
 }
 \description{
-This function read AScore results from a local folder.
+This function reads AScore results from a local folder.
 }
 \examples{
-ascore <- read_AScore_results("./data/ascore_outputs")
-msnid <- best_PTM_location_by_ascore(msnid, ascore)
-
+\dontrun{
+# Get AScore results
+path_to_AScore_results <- system.file("extdata/phospho/ascore_output",
+                                      package = "PlexedPiperTestData")
+ascore <- read_AScore_results(path_to_AScore_results)
+}
 }

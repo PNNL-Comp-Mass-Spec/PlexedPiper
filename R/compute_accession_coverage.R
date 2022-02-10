@@ -1,20 +1,32 @@
-#' Computing number of peptides per 1000 aa
+#' Compute number of peptides per 1000 aa
 #'
-#' Computing number of peptides per 1000 aa
+#' Computing number of peptides per 1000 amino acids.
 #'
 #' @param msnid (MSnID object) MS/MS ID data
 #' @param path_to_FASTA (numeric) Maximum acceptable FDR rate. Default is 0.01.
-#' @return (MSnID object) MS/MS ID data with computed number of peptides per 1000 aa. Added column name - "peptides_per_1000aa".
+#'
+#' @return (MSnID object) MS/MS ID data with computed number of peptides per
+#'   1000 aa. Added column name - "peptides_per_1000aa".
+#'
 #' @importFrom dplyr mutate select distinct group_by summarise n inner_join
 #' @importFrom MSnID psms
 #' @importFrom Biostrings readAAStringSet width
+#'
 #' @export compute_num_peptides_per_1000aa
+#'
 #' @examples
-#' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+#' \dontrun{
+#' path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+#'                                     package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
-#' path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", package = "PlexedPiperTestData")
+#' path_to_FASTA <- system.file(
+#'   "extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz",
+#'   package = "PlexedPiperTestData"
+#' )
 #' msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 #' hist(msnid$peptides_per_1000aa)
+#' }
+
 
 compute_num_peptides_per_1000aa <- function(msnid,
                                             path_to_FASTA){
@@ -31,7 +43,7 @@ compute_num_peptides_per_1000aa <- function(msnid,
 
    # count peptides per 1000 aa
    pepN1000 <- psms(msnid) %>%
-      select(accession, peptide, isDecoy) %>%
+      dplyr::select(accession, peptide, isDecoy) %>%
       distinct() %>%
       group_by(accession) %>%
       summarise(pepN = n()) %>%
@@ -43,4 +55,7 @@ compute_num_peptides_per_1000aa <- function(msnid,
    msnid$peptides_per_1000aa <- pepN1000_vec[msnid$accession]
    return(msnid)
 }
+
+utils::globalVariables(c("isDecoy", "pepN", "Length"))
+
 

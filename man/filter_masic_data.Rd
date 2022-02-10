@@ -9,30 +9,37 @@ filter_masic_data(x, interference_score_threshold = 0.9, s2n_threshold = 4)
 \arguments{
 \item{x}{(data.frame) collated MASIC output}
 
-\item{s2n_threshold}{(numeric) S/N calculated by vendor and extracted MASIC from raw files. Default is 4.}
+\item{interference_score_threshold}{(numeric) fetch extra metrics that MASIC
+extracts from dataset or not. Higher the number, the cleaner parent ion at
+MS1 level. Default is 0.9.}
 
-\item{interference_scrore_threshold}{(numeric) fetch extra metrics that MASIC extracts from dataset or not. Higher the number, the cleaner parent ion at MS1 level. Default is 0.9.}
+\item{s2n_threshold}{(numeric) S/N calculated by vendor and extracted MASIC
+from raw files. Default is 4.}
 }
 \value{
 (data.frame) filtered MASIC output
 }
 \description{
 Filtering MASIC data by InterferenceScore and S/N of individual channels.
-Note, function in its current form also drops 40 columns out of the data.frame.
-E.g. for TMT10 the table contains 62 columns. After filtering, the left columns
-are 10 TMT channels, dataset and scan.
+Note, function in its current form also drops 40 columns out of the
+data.frame. E.g. for TMT10 the table contains 62 columns. After filtering,
+the left columns are 10 TMT channels, dataset and scan.
 }
 \details{
 Default values interference_score_threshold = 0.9 and s2n_threshold = 4 are
-fairly stringent. The least recomended setting is interference_score_threshold = 0.5
-and s2n_threshold = 0. If not filtering intended do filter_masic_data(x,0,0) call.
+fairly stringent. The least recomended setting is
+interference_score_threshold = 0.5 and s2n_threshold = 0. If not filtering
+intended do filter_masic_data(x,0,0) call.
 }
 \examples{
-path_to_MASIC_results <- system.file("extdata/global/masic_output", package = "PlexedPiperTestData")
-x <- read_masic_data(path_to_MASIC_results, extra_metrics=TRUE)
+\dontrun{
+path_to_MASIC_results <- system.file("extdata/global/masic_output",
+                                     package = "PlexedPiperTestData")
+x <- read_masic_data(path_to_MASIC_results, interference_score = TRUE)
 dim(x)
 x1 <- filter_masic_data(x,0,0)
 dim(x1)
 x2 <- filter_masic_data(x)
 dim(x2)
+}
 }
