@@ -16,7 +16,8 @@ ascore (data.frame) AScore results
 This function read AScore results from a local folder.
 }
 \examples{
+\dontrun{
 ascore <- read_AScore_results("./data/ascore_outputs")
 msnid <- best_PTM_location_by_ascore(msnid, ascore)
-
+}
 }

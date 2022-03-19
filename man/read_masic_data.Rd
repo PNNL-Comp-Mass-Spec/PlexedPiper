@@ -18,8 +18,10 @@ read_masic_data(path_to_MASIC_results, interference_score = FALSE)
 Reading MASIC output from a single directory
 }
 \examples{
-path_to_MASIC_results <- system.file("extdata/global/masic_output", package = "PlexedPiperTestData")
+\dontrun{
+path_to_MASIC_results <- system.file("extdata/global/masic_output", 
+                            package = "PlexedPiperTestData")
 x <- read_masic_data(path_to_MASIC_results, interference_score=TRUE)
 head(x)
-
+}
 }

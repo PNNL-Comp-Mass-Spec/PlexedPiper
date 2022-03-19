@@ -8,6 +8,8 @@ read_msgf_data(path_to_MSGF_results, suffix = NULL)
 }
 \arguments{
 \item{path_to_MSGF_results}{(path string) to directory with MSGF results for all datasets}
+
+\item{suffix}{(character) Suffix (default `NULL`)}
 }
 \value{
 (MSnID) MSnID object
@@ -16,8 +18,11 @@ read_msgf_data(path_to_MSGF_results, suffix = NULL)
 Reading MSGF output from a single directory
 }
 \examples{
+\dontrun{
 path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
 msnid <- read_msgf_data(path_to_MSGF_results)
 print(msnid)
 head(MSnID::psms(msnid))
+}
+
 }

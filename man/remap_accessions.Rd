@@ -26,9 +26,11 @@ Converting accessions from RefSeq to Gene. If `conversion_table` is not
 supplied, the function leverages `AnnotationHub()`
 }
 \examples{
+\dontrun{
 path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
 msnid <- read_msgf_data(path_to_MSGF_results)
 show(msnid)
 msnid <- remap_accessions_refseq_to_gene(msnid, organism_name="Rattus norvegicus")
 show(msnid)
+}
 }

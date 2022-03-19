@@ -7,9 +7,7 @@
 read_study_design(path_to_study_design)
 }
 \arguments{
-\item{path_to_folder}{(string) path to folder containing study design files}
-
-\item{dataPkgNumber}{(integer) data package number for DMS}
+\item{path_to_study_design}{(string) path to folder containing study design files}
 }
 \description{
 Fetches study design results from local folder.
@@ -18,10 +16,11 @@ Checks that study design files are internally consistent.
 * `read_study_design()`: returns a list of study design tables, accessible by $
 }
 \examples{
+\dontrun{
 study_design <- read_study_design("data/study_design_folder")
 
 fractions  <- study_design$fractions
 samples    <- study_design$samples
 references <- study_design$references
-
+}
 }

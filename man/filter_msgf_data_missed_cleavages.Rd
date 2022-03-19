@@ -18,10 +18,12 @@ filter_msgf_data_missed_cleavages(msnid, missed_cleavages_threshold = 2)
 Filtering MSGF data by number of missed cleavages.
 }
 \examples{
+\dontrun{
 path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
 msnid <- read_msgf_data(path_to_MSGF_results)
 msnid <- MSnID::correct_peak_selection(msnid)
 show(msnid)
 msnid <-  filter_msgf_data_missed_cleavages(msnid, 2) # at most 2 missed cleavages
 show(msnid)
+}
 }

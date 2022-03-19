@@ -11,9 +11,18 @@ make_id_to_quant_scan_link_table(
   threshold = NULL
 )
 }
+\arguments{
+\item{scanStats}{Scan stats}
+
+\item{idScanPattern}{Default `ms2`}
+
+\item{quantScanPattern}{Default `ms3`}
+
+\item{threshold}{Default `NULL`}
+}
 \value{
 (data.table) with reporter ion intensities and other metrics
 }
 \description{
-Finding Links from PNNL's DMS
+scanStats should have only one Dataset column
 }
