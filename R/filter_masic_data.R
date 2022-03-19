@@ -10,21 +10,23 @@
 #' and s2n_threshold = 0. If not filtering intended do filter_masic_data(x,0,0) call.
 #'
 #' @param x (data.frame) collated MASIC output
-#' @param interference_scrore_threshold (numeric) fetch extra metrics that MASIC extracts from dataset or not. Higher the number, the cleaner parent ion at MS1 level. Default is 0.9.
+#' @param interference_score_threshold (numeric) fetch extra metrics that MASIC extracts from dataset or not. Higher the number, the cleaner parent ion at MS1 level. Default is 0.9.
 #' @param s2n_threshold (numeric) S/N calculated by vendor and extracted MASIC from raw files. Default is 4.
 #' @return (data.frame) filtered MASIC output
 #' @importFrom dplyr filter select inner_join mutate %>%
 #' @importFrom tidyselect contains starts_with all_of
 #' @importFrom tidyr gather spread
 #' @export filter_masic_data
-#' @examples
-#' path_to_MASIC_results <- system.file("extdata/global/masic_output", package = "PlexedPiperTestData")
+#' @examples \dontrun{
+#' path_to_MASIC_results <- system.file("extdata/global/masic_output", 
+#' package = "PlexedPiperTestData")
 #' x <- read_masic_data(path_to_MASIC_results, extra_metrics=TRUE)
 #' dim(x)
 #' x1 <- filter_masic_data(x,0,0)
 #' dim(x1)
 #' x2 <- filter_masic_data(x)
 #' dim(x2)
+#' }
 
 filter_masic_data <- function(x,
                               interference_score_threshold = 0.9,

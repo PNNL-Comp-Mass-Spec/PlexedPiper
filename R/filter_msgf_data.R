@@ -9,24 +9,26 @@
 #' @param level (character) Level at which to perform FDR filter
 #' @param n.iter.grid (numeric) number of grid-distributed evaluation points. Default 500.
 #' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization algorithm. Default 100.
+#' @param ... Take arguments from `filter_msgf_data`?
 #'
 #' @return (MSnID object) filtered MSGF output
 #'
 #' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter mass_measurement_error apply_filter
 #'
-#' @examples
-#' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+#' @examples \dontrun{
+#' path_to_MSGF_results <- system.file("extdata/global/msgf_output", 
+#'                         package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
 #' msnid <- MSnID::correct_peak_selection(msnid)
 #' show(msnid)
 #' msnid <- filter_msgf_data(msnid, "peptide", 0.01) # 1% FDR at peptide level
 #' show(msnid)
-#' path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", package = "PlexedPiperTestData")
+#' path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", 
+#'                         package = "PlexedPiperTestData")
 #' msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 #' msnid <- filter_msgf_data(msnid, "accession", 0.01) # 1% FDR at protein level
 #' show(msnid)
-#'
-
+#' }
 #' @export
 filter_msgf_data <- function(msnid,
                              level,

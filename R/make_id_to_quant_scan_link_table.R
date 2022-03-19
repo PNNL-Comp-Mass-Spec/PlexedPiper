@@ -1,14 +1,19 @@
 #' Finding Links from PNNL's DMS
 #'
+#' scanStats should have only one Dataset column
+#' 
+#' @param scanStats Scan stats
+#' @param idScanPattern Default `ms2`
+#' @param quantScanPattern Default `ms3`
+#' @param threshold Default `NULL`
 #' @return (data.table) with reporter ion intensities and other metrics
 #' @importFrom dplyr select
 #' @importFrom data.table data.table
 #' @importFrom plyr llply
-
-## scanStats should have only one Dataset column
-
-make_id_to_quant_scan_link_table <- function(scanStats, idScanPattern = "ms2", 
-                                         quantScanPattern = "ms3", threshold = NULL) {
+make_id_to_quant_scan_link_table <- function(scanStats, 
+                                             idScanPattern = "ms2", 
+                                             quantScanPattern = "ms3", 
+                                             threshold = NULL) {
   # Select only relevant columns
   scanStats <- select(scanStats, 
                       Dataset, 
@@ -64,8 +69,10 @@ make_id_to_quant_scan_link_table <- function(scanStats, idScanPattern = "ms2",
 
 # Works to link id scans to quant scans for a single dataset.
 # comment treshold parameter
-make_id_to_quant_scan_link_table_for_dataset <- function(scanStats, quantScanPattern, 
-                                                    idScanPattern, threshold = NULL) {
+make_id_to_quant_scan_link_table_for_dataset <- function(scanStats, 
+                                                         quantScanPattern, 
+                                                         idScanPattern, 
+                                                         threshold = NULL) {
   dataset <- unique(scanStats$Dataset)
   if (length(dataset) > 1){
     stop("Data from more than one dataset supplied, please check input.")

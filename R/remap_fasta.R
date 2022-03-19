@@ -4,7 +4,7 @@
 #' In case of multiple RefSeq sequences available, only the first longest is
 #' retained.
 #'
-#' @param msnid (MSnID object) MS/MS ID data
+#' @param path_to_FASTA (MSnID object) MS/MS ID data
 #' @param organism_name (string) Official organism name
 #' @param conversion_table (data.frame) data frame with two columns
 #' one should with named accessions and contain accessions from `msnid` object
@@ -21,10 +21,11 @@
 #' @importFrom tibble tibble
 #' @importFrom tools file_path_sans_ext
 #'
-#' @name remap_accessions_fasta
+#' @name remap_accessions_refseq_to_gene_fasta
 #'
-#' @examples
-#' path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", package = "PlexedPiperTestData")
+#' @examples \dontrun{
+#' #' path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", 
+#'                                 package = "PlexedPiperTestData")
 #' temp_work_dir <- tempdir() # can be set to "." or getwd(), if done carefully
 #' file.copy(path_to_FASTA, temp_work_dir)
 #' path_to_FASTA <- file.path(temp_work_dir, basename(path_to_FASTA))
@@ -32,12 +33,12 @@
 #' readAAStringSet(path_to_FASTA) # refseq IDs
 #' path_to_new_FASTA <- remap_accessions_refseq_to_gene_fasta(path_to_FASTA,"Rattus norvegicus")
 #' readAAStringSet(path_to_new_FASTA) # gene IDs
-
-
+#' }
 #' @export
 remap_accessions_refseq_to_gene_fasta <- function(path_to_FASTA,
-                                            organism_name,
-                                            conversion_table){
+                                                  organism_name,
+                                                  conversion_table){
+                                            
 
    is_compressed <- FALSE
    if(grepl("[.]gz$", path_to_FASTA)){
@@ -88,7 +89,20 @@ remap_accessions_refseq_to_gene_fasta <- function(path_to_FASTA,
 
 
 
-
+#' Remap Sequence IDs from Uniprot in FASTA File
+#'
+#' The function remaps the IDs in the FASTA file from Uniprot to Gene symbols.
+#' In case of multiple Uniprot sequences available, only the first longest is
+#' retained.
+#'
+#' @param path_to_FASTA (MSnID object) MS/MS ID data
+#' 
+#' @return (MSnID object) MS/MS ID data with computed number of
+#' peptides per 1000 aa. Added column name - "peptides_per_1000aa".
+#' 
+#' @importFrom Biostrings readAAStringSet
+#' @name remap_accessions_refseq_to_gene_fasta
+#'
 #' @export
 remap_accessions_uniprot_to_gene_fasta <- function(path_to_FASTA){
 

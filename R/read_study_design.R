@@ -7,22 +7,19 @@
 #' @description
 #' * `read_study_design()`: returns a list of study design tables, accessible by $
 #'
-#' @param path_to_folder (string) path to folder containing study design files
-#' @param dataPkgNumber (integer) data package number for DMS
+#' @param path_to_study_design (string) path to folder containing study design files
 #'
 #' @importFrom readr read_tsv
 #' @importFrom dplyr filter select rename %>%
 #' @name read_study_design
 #'
-#' @examples
+#' @examples \dontrun{
 #' study_design <- read_study_design("data/study_design_folder")
 #' 
 #' fractions  <- study_design$fractions
 #' samples    <- study_design$samples
 #' references <- study_design$references
-#' 
-
-
+#' }
 #' @export
 #' @rdname read_study_design
 # gets 3 study design files from local directory

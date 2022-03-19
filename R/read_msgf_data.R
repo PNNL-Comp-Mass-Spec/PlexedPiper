@@ -3,18 +3,21 @@
 #' Reading MSGF output from a single directory
 #'
 #' @param path_to_MSGF_results (path string) to directory with MSGF results for all datasets
+#' @param suffix (character) Suffix (default `NULL`)
 #' @return (MSnID) MSnID object
 #' @importFrom dplyr mutate
 #' @importFrom MSnID MSnID convert_msgf_output_to_msnid
 #' @importMethodsFrom MSnID psms<-
-#' @examples
+#' @examples \dontrun{
 #' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
 #' print(msnid)
 #' head(MSnID::psms(msnid))
-
+#' }
+#' 
 #' @export
-read_msgf_data <- function(path_to_MSGF_results, suffix = NULL){
+read_msgf_data <- function(path_to_MSGF_results, 
+                           suffix = NULL){
    
    if (is.null(suffix)) {
       for (pattern in c("_msgfplus_syn.txt", "_msgfdb_syn.txt", "_syn.txt")) {
