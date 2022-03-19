@@ -1,3 +1,78 @@
+# Undeclared variables
+utils::globalVariables(
+  c(
+    ".",
+    "...",
+    ".SD",
+    ":=",
+    "accession",
+    "..aggregation_level",
+    "d",
+    "ANNOTATION",
+    "AScore",
+    "assess_missed_cleavages",
+    "best_PTM_location_by_ascore",
+    "BestSequence",
+    "channel",
+    "confident_score",
+    "Dataset",
+    "ENTREZID",
+    "everything",
+    "fetch_conversion_table",
+    "flanking_sequence",
+    "IDScan",
+    "if_else",
+    "ind",
+    "intensity",
+    "InterferenceScore",
+    "isDecoy",
+    "Job",
+    "len",
+    "Length",
+    "link_min_vectorized",
+    "maxAScore",
+    "MeasurementName",
+    "MSGFDB_SpecEValue",
+    "noninferableProteins",
+    "OriginalSequence",
+    "pData<-",
+    "pepN",
+    "peptide",
+    "Peptide",
+    "peptide_score",
+    "peptideSignature",
+    "percent_coverage",
+    "percentAACoverage",
+    "PlexID",
+    "protein_id",
+    "ptm_id",
+    "ptm_peptide",
+    "QuantBlock",
+    "quantile",
+    "QuantScan",
+    "read.delim",
+    "redundant_ids",
+    "redundantAccessions",
+    "remap_accessions_uniprot_to_gene_fasta",
+    "reporter_converter",
+    "ReporterAlias",
+    "ReporterIon",
+    "s2n",
+    "sampleNames",
+    "Scan Filter Text",
+    "Scan",
+    "ScanFilterText",
+    "ScanNumber",
+    "sequenceWindow",
+    "setTxtProgressBar",
+    "SiteID",
+    "Specie",
+    "spectrumFile",
+    "SYMBOL",
+    "txtProgressBar"
+  )
+)
+
 #' Remap accessions
 #'
 #' Converting accessions from RefSeq to Gene. If `conversion_table` is not
@@ -17,12 +92,13 @@
 #'
 #' @name remap_accessions
 #'
-#' @examples
+#' @examples \dontrun{
 #' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
 #' show(msnid)
 #' msnid <- remap_accessions_refseq_to_gene(msnid, organism_name="Rattus norvegicus")
 #' show(msnid)
+#' }
 
 #' @export
 #' @rdname remap_accessions
