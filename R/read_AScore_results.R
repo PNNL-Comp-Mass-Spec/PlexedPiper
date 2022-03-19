@@ -8,11 +8,10 @@
 #' @importFrom dplyr rename
 #' @export read_AScore_results
 #'
-#'
-#' @examples
+#' @examples \dontrun{
 #' ascore <- read_AScore_results("./data/ascore_outputs")
 #' msnid <- best_PTM_location_by_ascore(msnid, ascore)
-#'
+#' }
 
 
 read_AScore_results <- function(path_to_AScore_results) {
