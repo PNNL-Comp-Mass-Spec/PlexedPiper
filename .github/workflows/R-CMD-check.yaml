@@ -2,7 +2,9 @@
 
 on:
   push:
-    branches: master
+    branches:
+      master
+      bugfix/fix-checks
   pull_request:
     branches: master
 
