@@ -1,22 +1,33 @@
 #' Reading MSGF Results. Generic.
 #'
-#' Reading MSGF output from a single directory
+#' Reading MSGF output from a single directory.
 #'
-#' @param path_to_MSGF_results (path string) to directory with MSGF results for all datasets
+#' @param path_to_MSGF_results (character) path to directory with MSGF results
+#'   for all datasets.
+#' @param suffix (character) optional file suffix. Either `"_msgfplus_syn.txt"`,
+#'   `"_msgfdb_syn.txt"`, or `"_syn.txt"`.
+#'
+#' @md
+#'
 #' @return (MSnID) MSnID object
+#'
 #' @importFrom dplyr mutate
 #' @importFrom MSnID MSnID convert_msgf_output_to_msnid
 #' @importMethodsFrom MSnID psms<-
+#'
 #' @examples
-#' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+#' \dontrun{
+#' path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+#'                                     package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
 #' print(msnid)
 #' head(MSnID::psms(msnid))
+#' }
 
 #' @export
-read_msgf_data <- function(path_to_MSGF_results, suffix = NULL){
-   
-   if (is.null(suffix)) {
+read_msgf_data <- function(path_to_MSGF_results, suffix = character(0)){
+
+   if (identical(suffix, character(0))) {
       for (pattern in c("_msgfplus_syn.txt", "_msgfdb_syn.txt", "_syn.txt")) {
          if (length(list.files(path_to_MSGF_results, pattern)) > 0) {
             suffix <- pattern
@@ -24,11 +35,12 @@ read_msgf_data <- function(path_to_MSGF_results, suffix = NULL){
          }
       }
    }
-   
-   if (is.null(suffix) | (length(list.files(path_to_MSGF_results, suffix)) == 0)) {
+
+   if (identical(suffix, character(0)) |
+       (length(list.files(path_to_MSGF_results, suffix)) == 0)) {
       stop("MS-GF+ results not found.")
    }
-   
+
    x <- collate_files(path_to_MSGF_results, suffix)
    msnid <- convert_msgf_output_to_msnid(x)
    return(msnid)

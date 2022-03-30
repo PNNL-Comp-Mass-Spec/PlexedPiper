@@ -1,127 +1,91 @@
 #' Remap accessions
 #'
-#' Converting accessions from RefSeq to Gene. If `conversion_table` is not
-#' supplied, the function leverages `AnnotationHub()`
+#' Converting accessions from RefSeq to Gene. If \code{conversion_table} is not
+#' supplied, the function leverages \code{\link[MSnID]{fetch_conversion_table}}.
 #'
 #' @param msnid (MSnID object) MS/MS ID data
-#' @param organism_name (string) Official organism name
-#' @param conversion_table (data.frame) data frame with two columns
-#' one should with named accessions and contain accessions from `msnid` object (e.g. RefSeq) the other is with alternative annotation to map to (e.g. gene symbol).
-#' @return (MSnID object) MS/MS ID data with computed number of peptides per 1000 aa. Added column name - "peptides_per_1000aa".
+#' @param organism_name (character) Scientific name of organism.
+#' @param conversion_table (data.frame) Optional data.frame with two columns.
+#'   One column should match the accessions from the `msnid` object (e.g.
+#'   RefSeq). The other column is for the alternate annotation to map to (e.g.
+#'   gene symbol).
+#'
+#' @return (MSnID object) MS/MS ID data with computed number of peptides per
+#'   1000 aa. Added column name - "peptides_per_1000aa".
+#'
 #' @importMethodsFrom MSnID $<- accessions
-#' @importFrom Biostrings readAAStringSet width
-#' @importFrom AnnotationHub AnnotationHub query
-#' @importFrom AnnotationDbi select
-#' @importFrom dplyr bind_cols
-#' @importFrom tools file_path_sans_ext file_ext
+#' @importFrom MSnID fetch_conversion_table
+#' @importFrom dplyr bind_cols inner_join
 #'
 #' @name remap_accessions
 #'
 #' @examples
-#' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+#' \dontrun{
+#' path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+#'                                     package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
 #' show(msnid)
-#' msnid <- remap_accessions_refseq_to_gene(msnid, organism_name="Rattus norvegicus")
+#' msnid <- remap_accessions_refseq_to_gene(msnid,
+#'                                          organism_name="Rattus norvegicus")
 #' show(msnid)
+#' }
 
 #' @export
 #' @rdname remap_accessions
 remap_accessions_refseq_to_gene <- function(msnid,
                                             organism_name,
-                                            conversion_table){
-   
-   acc.d <- accessions(msnid)
-   # by default RefSeq ID are with version digit(s)
-   acc <- sub(".*?(.P_\\d+)(\\.\\d+)?", "\\1", acc.d) # this drops ^XXX
-   
-   acc.x <- bind_cols(accessions = acc.d, REFSEQ = acc)
-   
-   if(!missing(conversion_table)){
-      conversion_table <- filter(conversion_table, 
-                                 !is.na(conversion_table$SYMBOL))
-      conv_map <- inner_join(acc.x, conversion_table, by = "REFSEQ")
-   }
-   
-   else{
-      ah <- AnnotationHub()
-      orgs <- subset(ah, ah$rdataclass == "OrgDb")
-      db <- query(orgs, organism_name)
-      db <- db[[1]] # wierd command
-      # columns(db)
-      # keytypes(db)
-      conv_ann <- AnnotationDbi::select(db,
-                                       keys=acc,
-                                       columns="SYMBOL",
-                                       keytype="REFSEQ")
-      conv_ann <- filter(conv_ann, !is.na(SYMBOL))
-      conv_map <- inner_join(acc.x, conv_ann, by="REFSEQ")
-   }
-
-   # # add reverse IDs
-   # conv_vec_rev <- paste0("XXX_",conv_vec)
-   # names(conv_vec_rev) <- paste0("XXX_",names(conv_vec_rev))
-   # conv_vec <- c(conv_vec, conv_vec_rev)
-   
-   conv_vec <- conv_map$SYMBOL
-   names(conv_vec) <- conv_map$accessions
-   
-   msnid$accession <- conv_vec[msnid$accession]
-
-   # make sure decoy accessions start with XXX
-   msnid$accession <- ifelse(msnid$isDecoy,
-                             paste0("XXX_", msnid$accession),
-                             msnid$accession)
-
-   return(msnid)
+                                            conversion_table)
+{
+   remap_accessions_to_gene(msnid, organism_name,
+                            conversion_table, from = "REFSEQ")
 }
-
-
-
-
-
-
-
-
 
 
 #' @export
 #' @rdname remap_accessions
 remap_accessions_uniprot_to_gene <- function(msnid,
-                                            organism_name,
-                                            conversion_table){
+                                             organism_name,
+                                             conversion_table)
+{
+   remap_accessions_to_gene(msnid, organism_name,
+                            conversion_table, from = "UNIPROT")
+}
+
+
+
+# Generic remap function - not exported
+remap_accessions_to_gene <- function(msnid, organism_name, conversion_table,
+                                     from = c("REFSEQ", "UNIPROT"))
+{
+   # Check input
+   from <- match.arg(from, choices = c("REFSEQ", "UNIPROT"))
+
+   pttrn <- ifelse(from == "UNIPROT",
+                   "^.*\\|(.+?)(-\\d+)?\\|.*", # UniProt pattern
+                   ".*?(.P_\\d+)(\\.\\d+)?") # RefSeq pattern
+
    acc_full <- accessions(msnid)
    # this drops ^XXX and isoform number if present
-   acc <- sub("^.*\\|(.+?)(-\\d+)?\\|.*", "\\1", acc_full)
-   
-   acc.x <- bind_cols(accessions = acc_full, UNIPROT = acc)
-   
-   if(!missing(conversion_table)){
-      conversion_table <- filter(conversion_table, 
+   acc <- sub(pttrn, "\\1", acc_full)
+
+   acc.x <- bind_cols(accessions = acc_full, from = acc)
+   # Rename "from" to "REFSEQ" or "UNIPROT"
+   names(acc.x)[names(acc.x) == "from"] <- from
+
+   if (!missing(conversion_table)) {
+      stopifnot(identical(names(conversion_table), c(from, "SYMBOL")))
+      conversion_table <- filter(conversion_table,
                                  !is.na(conversion_table$SYMBOL))
-      conv_map <- inner_join(acc.x, conversion_table, by = "UNIPROT")
-   }
-   
-   else{ 
-      ah <- AnnotationHub()
-      orgs <- subset(ah, ah$rdataclass == "OrgDb")
-      db <- query(orgs, organism_name)
-      db <- db[[1]] # wierd command
-      # columns(db)
-      # keytypes(db)
-
-      conv_ann <- AnnotationDbi::select(db,
-                                        keys=acc,
-                                        columns="SYMBOL",
-                                        keytype="UNIPROT")
-      conv_ann <- filter(conv_ann, !is.na(SYMBOL))
-      conv_map <- inner_join(acc.x, conv_ann, by="UNIPROT")
+      conv_map <- inner_join(acc.x, conversion_table, by = from)
+   } else {
+      message(sprintf("Fetching %s to SYMBOL conversion table", from))
+      suppressWarnings(
+         conv_ann <- fetch_conversion_table(organism_name,
+                                            from = from, to = "SYMBOL")
+      )
+      conv_map <- inner_join(acc.x, conv_ann, by = from)
    }
 
-   # # add reverse IDs
-   # conv_vec_rev <- paste0("XXX_",conv_vec)
-   # names(conv_vec_rev) <- paste0("XXX_",names(conv_vec_rev))
-   # conv_vec <- c(conv_vec, conv_vec_rev)
-   
    conv_vec <- conv_map$SYMBOL
    names(conv_vec) <- conv_map$accessions
 
@@ -134,4 +98,6 @@ remap_accessions_uniprot_to_gene <- function(msnid,
 
    return(msnid)
 }
+
+utils::globalVariables("SYMBOL")
 

@@ -13,22 +13,29 @@ remap_accessions_uniprot_to_gene(msnid, organism_name, conversion_table)
 \arguments{
 \item{msnid}{(MSnID object) MS/MS ID data}
 
-\item{organism_name}{(string) Official organism name}
+\item{organism_name}{(character) Scientific name of organism.}
 
-\item{conversion_table}{(data.frame) data frame with two columns
-one should with named accessions and contain accessions from `msnid` object (e.g. RefSeq) the other is with alternative annotation to map to (e.g. gene symbol).}
+\item{conversion_table}{(data.frame) Optional data.frame with two columns.
+One column should match the accessions from the `msnid` object (e.g.
+RefSeq). The other column is for the alternate annotation to map to (e.g.
+gene symbol).}
 }
 \value{
-(MSnID object) MS/MS ID data with computed number of peptides per 1000 aa. Added column name - "peptides_per_1000aa".
+(MSnID object) MS/MS ID data with computed number of peptides per
+  1000 aa. Added column name - "peptides_per_1000aa".
 }
 \description{
-Converting accessions from RefSeq to Gene. If `conversion_table` is not
-supplied, the function leverages `AnnotationHub()`
+Converting accessions from RefSeq to Gene. If \code{conversion_table} is not
+supplied, the function leverages \code{\link[MSnID]{fetch_conversion_table}}.
 }
 \examples{
-path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+\dontrun{
+path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+                                    package = "PlexedPiperTestData")
 msnid <- read_msgf_data(path_to_MSGF_results)
 show(msnid)
-msnid <- remap_accessions_refseq_to_gene(msnid, organism_name="Rattus norvegicus")
+msnid <- remap_accessions_refseq_to_gene(msnid,
+                                         organism_name="Rattus norvegicus")
 show(msnid)
+}
 }
