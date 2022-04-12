@@ -115,14 +115,14 @@ contaminants.
 ```{r fasta_prep}
 fst_dms_pth <- path_to_FASTA_used_by_DMS(data_package_num)
 fst <- readAAStringSet(fst_dms_pth)
-names(fst) <- sub("^([A-Z]P_\\d+\\.\\d+)\\s.*", "\\1", names(fst))
+names(fst) <- gsub(" .*", "", names(fst)) # names must match accessions
 ```
 
 Mapping main call.
 ```{r map_sites}
 msnid <- map_mod_sites(msnid, fst, 
                        accession_col = "accession", 
-                       peptide_mod_col = "Peptide", 
+                       peptide_mod_col = "peptide", 
                        mod_char = "*",
                        site_delimiter = "lower")
 head(psms(msnid))

@@ -1,31 +1,41 @@
 #' Filtering MSGF Data
 #'
-#' Filtering MSGF data. In this implementation the peptide level filter optimizes both ppm and
-#' PepQValue thresholds to achieve maximum number of peptide identifications within
-#' given FDR constrain.
+#' Filtering MSGF data. In this implementation the peptide level filter
+#' optimizes both ppm and PepQValue thresholds to achieve maximum number of
+#' peptide identifications within given FDR constrain.
+#'
+#' @md
 #'
 #' @param msnid (MSnID object) collated MSGF output
-#' @param fdr.max (numeric) Maximum acceptable FDR rate. Default is 0.01.
+#' @param fdr.max (numeric) Maximum acceptable FDR. Default is 0.01 (1%).
 #' @param level (character) Level at which to perform FDR filter
-#' @param n.iter.grid (numeric) number of grid-distributed evaluation points. Default 500.
-#' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization algorithm. Default 100.
+#' @param n.iter.grid (numeric) number of grid-distributed evaluation points.
+#' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization
+#'   algorithm.
+#' @param ... arguments passed to `filter_msgf_data`.
 #'
 #' @return (MSnID object) filtered MSGF output
 #'
-#' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter mass_measurement_error apply_filter
+#' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter
+#'   mass_measurement_error apply_filter
 #'
 #' @examples
-#' path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+#' \dontrun{
+#' path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+#'                                     package = "PlexedPiperTestData")
 #' msnid <- read_msgf_data(path_to_MSGF_results)
 #' msnid <- MSnID::correct_peak_selection(msnid)
 #' show(msnid)
 #' msnid <- filter_msgf_data(msnid, "peptide", 0.01) # 1% FDR at peptide level
 #' show(msnid)
-#' path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", package = "PlexedPiperTestData")
+#' path_to_FASTA <- system.file(
+#'   "extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz",
+#'   package = "PlexedPiperTestData"
+#' )
 #' msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 #' msnid <- filter_msgf_data(msnid, "accession", 0.01) # 1% FDR at protein level
 #' show(msnid)
-#'
+#' }
 
 #' @export
 filter_msgf_data <- function(msnid,
@@ -54,7 +64,7 @@ filter_msgf_data <- function(msnid,
 
     # Create MSnID of minimum size
     suppressMessages(msnid_small <- MSnID())
-    # add filter criteria columns
+    # Add filter criteria columns
     keep_cols <- c(keep_cols, "msmsScore", "absParentMassErrorPPM")
     msnid_small@psms <- unique(msnid@psms[, keep_cols, with = FALSE])
 
@@ -66,7 +76,8 @@ filter_msgf_data <- function(msnid,
   } else {
     # Create MSnID of minimum size
     suppressMessages(msnid_small <- MSnID())
-    keep_cols <- c(keep_cols, "peptides_per_1000aa") # add filter criteria column
+    # Add filter criteria column
+    keep_cols <- c(keep_cols, "peptides_per_1000aa")
     msnid_small@psms <- unique(msnid@psms[, keep_cols, with = FALSE])
 
     # Create filter object

@@ -3,6 +3,7 @@
 
 #' @importFrom plyr llply
 #' @importFrom dplyr bind_rows
+#' @importFrom utils read.delim
 
 read_with_name <- function(x, suffix){
    nm <- strsplit(basename(x), suffix)[[1]][1]

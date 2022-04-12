@@ -110,7 +110,8 @@ accessions switched from RefSeq to gene symbols.
 path_to_FASTA <- path_to_FASTA_used_by_DMS(data_package_num)
 path_to_FASTA_gene <- remap_accessions_refseq_to_gene_fasta(
    path_to_FASTA,
-   organism_name = "Rattus norvegicus")
+   organism_name = "Rattus norvegicus"
+)
 ```
 
 
@@ -218,7 +219,8 @@ There may be a way to query this from DMS. At this point, we'll read the file
 from `PlexedPiperTestData` package.
 ```{r read_samples}
 library(readr)
-samples <- read_tsv(system.file("extdata/study_design/samples.txt", package = "PlexedPiperTestData"))
+samples <- read_tsv(system.file("extdata/study_design/samples.txt", 
+                                package = "PlexedPiperTestData"))
 head(samples,10)
 ```
 
@@ -231,7 +233,8 @@ QuantBlock can be though of as a way of defining sub-plex. In a typical TMT
 experiment QuantBlock is always 1. In case of 5 pairwise comparisons within
 TMT10, there will be 5 QuantBlocks (1..5) with reference for each QuantBlock.
 ```{r read_references}
-references <- read_tsv(system.file("extdata/study_design/references.txt", package = "PlexedPiperTestData"))
+references <- read_tsv(system.file("extdata/study_design/references.txt",
+                                   package = "PlexedPiperTestData"))
 head(references)
 ```
 
@@ -260,30 +263,6 @@ quant_cross_tab <- create_crosstab(msnid,
 dim(quant_cross_tab)
 head(quant_cross_tab)
 ```
-
-
-RII
-```{r rii}
-samples_rii <- samples %>%
-   mutate(MeasurementName = case_when(is.na(MeasurementName) ~ paste0("ref_",PlexID),
-                                      TRUE ~ MeasurementName))
-
-samples_rii <- samples %>%
-   mutate(MeasurementName = case_when(is.na(MeasurementName) ~ "ref",
-                                      TRUE ~ MeasurementName)) %>%
-   mutate(MeasurementName = paste0(MeasurementName,"_",PlexID))
-
-references_rii <- references %>%
-   mutate(Reference = 1)
-
-quant_cross_tab_rii <- create_crosstab(msnid, 
-                                   masic_data, 
-                                   aggregation_level, 
-                                   fractions, samples_rii, references_rii)
-
-
-```
-
 
 
 ```{r cleanup, echo=FALSE}

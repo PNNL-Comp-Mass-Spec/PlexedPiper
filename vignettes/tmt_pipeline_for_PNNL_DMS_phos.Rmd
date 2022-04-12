@@ -47,8 +47,8 @@ data_package_num <- 3625
 ```{r test_connection}
 # if there is no connection to PNNL DMS, vignette is not compiled
 if(!is_PNNL_DMS_connection_successful()){
-   message("There is no connection to PNNL DMS. This code in this vignette won't be evaluated.")
-   knitr::opts_chunk$set(eval = FALSE)
+  message("There is no connection to PNNL DMS. This code in this vignette won't be evaluated.")
+  knitr::opts_chunk$set(eval = FALSE)
 }
 ```
 
@@ -92,11 +92,19 @@ msnid <- filter_msgf_data_peptide_level(msnid, 0.01)
 Remapping IDs from RefSeq to gene symbols both `MSnID` object and
 the FASTA file use for the search.
 ```{r remap}
-conv_tbl <- fetch_conversion_table("Rattus norvegicus", "REFSEQ", "SYMBOL")
-msnid <- remap_accessions(msnid, conv_tbl, "([A-Z]P_\\d+)")
+conv_tbl <- fetch_conversion_table(organism_name = "Rattus norvegicus", 
+                                  from = "REFSEQ", to = "SYMBOL")
+
+msnid <- remap_accessions_refseq_to_gene(msnid,
+                                         conversion_table = conv_tbl)
+
+# Remove missing accessions
+psms(msnid) <- dplyr::filter(psms(msnid), !is.na(accession))
 
 fst_dms_pth <- path_to_FASTA_used_by_DMS(data_package_num)
-fst_dms_pth_2 <- remap_fasta_entry_names(fst_dms_pth, conv_tbl, "([A-Z]P_\\d+)")
+fst_dms_pth_2 <- remap_accessions_refseq_to_gene_fasta(
+  fst_dms_pth, conversion_table = conv_tbl
+)
 ```
 
 Double checking FASTA file. Note, in case of multiple RefSeq mapping to the
@@ -114,7 +122,7 @@ sequence `D.DDDNDGGST*ENVHQAHR.H` itself.
 ```{r map_sites}
 msnid <- map_mod_sites(msnid, fst, 
                        accession_col = "accession", 
-                       peptide_mod_col = "Peptide", 
+                       peptide_mod_col = "peptide", 
                        mod_char = "*",
                        site_delimiter = "lower")
 head(psms(msnid))
@@ -124,7 +132,7 @@ head(psms(msnid))
 
 Inference of parsimonius step was skipped in this pipeline.
 Remapping RefSeq IDs to gene symbols helped the situation of the
-ambigious assignment. Demo of inference should be available in other 
+ambiguous assignment. Demo of inference should be available in other 
 vignettes.
 
 

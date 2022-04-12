@@ -115,14 +115,14 @@ contaminants.
 ```{r fasta_prep}
 fst_dms_pth <- path_to_FASTA_used_by_DMS(data_package_num)
 fst <- readAAStringSet(fst_dms_pth)
-names(fst) <- sub("^([A-Z]P_\\d+\\.\\d+)\\s.*", "\\1", names(fst))
+names(fst) <- gsub(" .*", "", names(fst)) # make names match accessions
 ```
 
 Mapping main call.
 ```{r map_sites}
 msnid <- map_mod_sites(msnid, fst, 
                        accession_col = "accession", 
-                       peptide_mod_col = "Peptide", 
+                       peptide_mod_col = "peptide", 
                        mod_char = "*",
                        site_delimiter = "lower")
 head(psms(msnid))
@@ -155,7 +155,7 @@ Aggregation at RefSeq / peptide level.
 ```{r cross_tab}
 msnid <- apply_filter(msnid, "!isDecoy")
 # aggregation_level <- c("SiteID")
-aggregation_level <- c("accession","Peptide")
+aggregation_level <- c("accession","peptide")
 quant_cross_tab <- create_crosstab(msnid, 
                                    masic_data, 
                                    aggregation_level, 
@@ -170,49 +170,26 @@ head(quant_cross_tab)
 ```{r}
 x_ascore <- 
   psms(msnid) %>% 
-  group_by(accession, Peptide, SiteID) %>%
+  group_by(accession, peptide, SiteID) %>%
   summarise(maxAScore = max(maxAScore))
 
 x <- quant_cross_tab %>%
   as.data.frame() %>%
   rownames_to_column("ID") %>%
   mutate(RefSeq =  sub("(.*)@(.\\..*\\..)","\\1",ID),
-         Peptide = sub("(.*)@(.\\..*\\..)","\\2",ID)) %>%
+         peptide = sub("(.*)@(.\\..*\\..)","\\2",ID)) %>%
   dplyr::select(-ID) %>%
   inner_join(x_ascore) %>%
-  mutate(ConfidentSite = maxAScore > 17) %>%
-  mutate(Peptide = gsub(".\\.(.*)\\..","\\1",Peptide, perl=T)) %>%
-  mutate(Peptide = gsub("(\\w)\\*","\\L\\1",Peptide, perl=T)) %>%
-  mutate(SiteID = sub("-", "_", SiteID)) %>%
-  mutate(ptm_peptide = paste0(SiteID, "-", Peptide))  %>%
+  mutate(ConfidentSite = maxAScore > 17,
+         peptide = gsub(".\\.(.*)\\..","\\1",peptide, perl=T),
+         peptide = gsub("(\\w)\\*","\\L\\1",peptide, perl=T),
+         SiteID = sub("-", "_", SiteID),
+         ptm_peptide = paste0(SiteID, "-", peptide))  %>%
   dplyr::rename(ptm_id = SiteID,
-                peptide = Peptide,
                 ascore = maxAScore,
                 confidence = ConfidentSite) %>%
   dplyr::select(-c(accession, RefSeq)) %>%
   dplyr::select(ptm_peptide, ptm_id, peptide, ascore, confidence, everything())
 head(x)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

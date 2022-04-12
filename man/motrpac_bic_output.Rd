@@ -57,55 +57,102 @@ assess_redundant_protein_matches(msnid, collapse = "|")
 assess_noninferable_proteins(msnid, collapse = "|")
 }
 \arguments{
-\item{msnid}{(MSnID-object) final filtered version of MSnID object}
+\item{msnid}{(MSnID object) final filtered version of MSnID object}
 
-\item{masic_data}{(data.frame) final filtered version of MASIC table}
+\item{masic_data}{(object coercible to \code{data.table}) final filtered version
+of MASIC table}
 
-\item{fractions}{(data.frame) Study design table linking Dataset with PlexID}
+\item{fractions}{(object coercible to \code{data.table}) study design table
+linking Dataset with PlexID}
 
-\item{samples}{(data.frame) Study design table linking sample names with TMT channels and PlexID}
+\item{samples}{(object coercible to \code{data.table}) study design table linking
+sample names with TMT channels and PlexID}
 
-\item{references}{(data.frame) Study design table describing reference value calculation}
+\item{references}{(object coercible to \code{data.table}) study design table
+describing reference value calculation}
 
-\item{org_name}{(character) Organism name. Default is 'Rattus norvegicus'}
+\item{annotation}{(character) format of \code{accessions(msnid)}. Either
+\code{"refseq"} or \code{"uniprot"} (case does not matter).}
 
-\item{sep}{(character) Single character used to concatenate protein, SiteID, and peptide}
+\item{org_name}{(character) scientific name of organism (e.g. \code{"Homo sapiens"}, \code{"Rattus norvegicus"}, \code{"Mus musculus"}, etc.).}
+
+\item{sep}{(character) used to concatenate protein, SiteID, and peptide.}
+
+\item{collapse}{(character) used to collapse proteins in
+\code{assess_redundant_protein_matches}}
 }
 \description{
 Assembles data in format compliant with BIC requirements.
-
+}
+\details{
+These functions require columns "redundantAccessions", "noninferableProteins"
+and "percentAACoverage" to be present in \code{psms(msnid)}, the last of which is
+created with \code{\link[MSnID]{compute_accession_coverage}}.
 \itemize{
-\item \code{make_rii_peptide_gl()}: returns 'RII_peptide.txt' table formatted for BIC (global)
-\item \code{make_results_ratio_gl()}: returns 'results_ratio.txt' table (global)
-\item \code{make_rii_peptide_ph()}: returns 'RII_peptide.txt' table (phospho)
-\item \code{make_results_ratio_ph()}: returns 'results_ratio.txt' table (phospho)
-\item \code{assess_redundant_proteins()}: appends proteins matched to multiple peptides
-\item \code{assess_noninferable_proteins()}: appends proteins with identical peptide sets
+\item \code{make_rii_peptide_gl}: returns 'RII_peptide.txt' table (global)
+\item \code{make_results_ratio_gl}: returns 'results_ratio.txt' table (global)
+\item \code{make_rii_peptide_ph}: returns 'RII_peptide.txt' table (phospho)
+\item \code{make_results_ratio_ph}: returns 'results_ratio.txt' table (phospho)
+\item \code{assess_redundant_protein_matches}: appends proteins matched to multiple
+peptides. Creates the "redundantAccessions" column in \code{psms(msnid)}.
+\item \code{assess_noninferable_proteins}: appends proteins with identical peptide
+sets. Creates the "noninferableProteins" column in \code{psms(msnid)}.
 }
 }
 \examples{
-# Prepare MS/MS IDs
-path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+\dontrun{
+# Prepare MS/MS IDs ----
+path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+                                    package = "PlexedPiperTestData")
 msnid <- read_msgf_data(path_to_MSGF_results)
 msnid <- MSnID::correct_peak_selection(msnid)
 show(msnid)
 msnid <- filter_msgf_data_peptide_level(msnid, 0.01)
 show(msnid)
-path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", package = "PlexedPiperTestData")
+path_to_FASTA <- system.file(
+  "extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz",
+  package = "PlexedPiperTestData"
+)
 msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 msnid <- filter_msgf_data_protein_level(msnid, 0.01)
 show(msnid)
+msnid <- assess_redundant_protein_matches(msnid)
+msnid <- assess_noninferable_proteins(msnid)
+fst <- Biostrings::readAAStringSet(path_to_FASTA)
+names(fst) <- gsub(" .*", "", names(fst)) # make names match accessions
+msnid <- MSnID::compute_accession_coverage(msnid, fst)
+head(psms(msnid))
 
-# Prepare table with reporter ion intensities
-path_to_MASIC_results <- system.file("extdata/global/masic_output", package = "PlexedPiperTestData")
-masic_data <- read_masic_data(path_to_MASIC_results, extra_metrics=TRUE)
+# Prepare table with reporter ion intensities ----
+path_to_MASIC_results <- system.file("extdata/global/masic_output",
+                                     package = "PlexedPiperTestData")
+masic_data <- read_masic_data(path_to_MASIC_results,
+                              interference_score = TRUE)
 masic_data <- filter_masic_data(masic_data, 0.5, 0)
 
+# Read study design files ----
 library(readr)
-fractions <- read_tsv(system.file("extdata/study_design/fractions.txt", package = "PlexedPiperTestData"))
-samples <- read_tsv(system.file("extdata/study_design/samples.txt", package = "PlexedPiperTestData"))
-references <- read_tsv(system.file("extdata/study_design/references.txt", package = "PlexedPiperTestData"))
+fractions <- read_tsv(system.file("extdata/study_design/fractions.txt",
+                                  package = "PlexedPiperTestData"))
+samples <- read_tsv(system.file("extdata/study_design/samples.txt",
+                                package = "PlexedPiperTestData"))
+references <- read_tsv(system.file("extdata/study_design/references.txt",
+                                   package = "PlexedPiperTestData"))
 
-results_ratio <- make_results_ratio_gl(msnid, masic_data, fractions, samples, references, org_name = "Rattus norvegicus")
-rii_peptide <- make_rii_peptide_gl(msnid, masic_data, fractions, samples, references, org_name = "Rattus norvegicus")
+# Create final tables ----
+results_ratio <- make_results_ratio_gl(msnid, masic_data,
+                                       fractions, samples, references,
+                                       annotation = "RefSeq",
+                                       org_name = "Rattus norvegicus")
+head(results_ratio, 10)
+
+rii_peptide <- make_rii_peptide_gl(msnid, masic_data,
+                                   fractions, samples, references,
+                                   annotation = "RefSeq",
+                                   org_name = "Rattus norvegicus")
+head(rii_peptide, 10)
+
+# Clean-up cache
+unlink(".Rcache", recursive = TRUE)
+}
 }

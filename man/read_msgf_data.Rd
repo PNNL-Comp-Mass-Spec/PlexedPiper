@@ -4,20 +4,27 @@
 \alias{read_msgf_data}
 \title{Reading MSGF Results. Generic.}
 \usage{
-read_msgf_data(path_to_MSGF_results, suffix = NULL)
+read_msgf_data(path_to_MSGF_results, suffix = character(0))
 }
 \arguments{
-\item{path_to_MSGF_results}{(path string) to directory with MSGF results for all datasets}
+\item{path_to_MSGF_results}{(character) path to directory with MSGF results
+for all datasets.}
+
+\item{suffix}{(character) optional file suffix. Either \code{"_msgfplus_syn.txt"},
+\code{"_msgfdb_syn.txt"}, or \code{"_syn.txt"}.}
 }
 \value{
 (MSnID) MSnID object
 }
 \description{
-Reading MSGF output from a single directory
+Reading MSGF output from a single directory.
 }
 \examples{
-path_to_MSGF_results <- system.file("extdata/global/msgf_output", package = "PlexedPiperTestData")
+\dontrun{
+path_to_MSGF_results <- system.file("extdata/global/msgf_output",
+                                    package = "PlexedPiperTestData")
 msnid <- read_msgf_data(path_to_MSGF_results)
 print(msnid)
 head(MSnID::psms(msnid))
+}
 }
