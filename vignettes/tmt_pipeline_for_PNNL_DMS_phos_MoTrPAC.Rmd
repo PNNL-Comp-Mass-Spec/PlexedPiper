@@ -28,7 +28,7 @@ filtering part.
 library(PlexedPiper)
 library(PNNL.DMS.utils)
 library(MSnID)
-library(tidyverse)
+library(dplyr)
 library(Biostrings)
 ```
 
@@ -174,7 +174,7 @@ x_ascore <-
 
 x <- quant_cross_tab %>%
   as.data.frame() %>%
-  rownames_to_column("SiteID") %>%
+  tibble::rownames_to_column("SiteID") %>%
   inner_join(x_ascore) %>%
   mutate(ConfidentSite = maxAScore > 17) %>%
   dplyr::select(SiteID, maxAScore, ConfidentSite, everything())

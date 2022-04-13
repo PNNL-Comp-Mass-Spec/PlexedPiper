@@ -28,7 +28,7 @@ filtering part.
 library(PlexedPiper)
 library(PNNL.DMS.utils)
 library(MSnID)
-library(tidyverse)
+library(dplyr)
 library(Biostrings)
 ```
 
@@ -175,7 +175,7 @@ x_ascore <-
 
 x <- quant_cross_tab %>%
   as.data.frame() %>%
-  rownames_to_column("ID") %>%
+  tibble::rownames_to_column("ID") %>%
   mutate(RefSeq =  sub("(.*)@(.\\..*\\..)","\\1",ID),
          peptide = sub("(.*)@(.\\..*\\..)","\\2",ID)) %>%
   dplyr::select(-ID) %>%

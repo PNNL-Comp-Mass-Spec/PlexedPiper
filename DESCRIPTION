@@ -25,12 +25,14 @@ Imports:
 Suggests:
     BiocStyle,
     PlexedPiperTestData,
+    PNNL.DMS.utils,
     Rcpp,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 Remotes:
    github::PNNL-Comp-Mass-Spec/MSnID@pnnl-master,
-   github::PNNL-Comp-Mass-Spec/PlexedPiperTestData
+   github::PNNL-Comp-Mass-Spec/PlexedPiperTestData,
+   github::PNNL-Comp-Mass-Spec/PNNL.DMS.utils
 VignetteBuilder: knitr
 Config/testthat/edition: 3
