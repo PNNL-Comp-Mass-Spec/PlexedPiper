@@ -25,19 +25,19 @@
 #' @return (list) If `return_results` is TRUE, it returns list with ration and rii data frames
 #' @importFrom Biostrings readAAStringSet
 #' @examples \dontrun{
-#' results <- run_pp(msgf_output_folder = "~/path/to/msgfplus/,
-#'                   fasta_file  = "~/path/to/fasta/sequence.fasta,
-#'                   masic_output_folder = "~/path/to/masic-results/",
-#'                   ascore_output_folder = "~/path/to/ascore-results/",
-#'                   proteomics = "ph",
-#'                   study_design_folder = "~/path/to/study-design/",
-#'                   species = "Rattus norvegicus",
-#'                   annotation = "RefSeq",
-#'                   global_results = "~/path/to/global/ratio.txt",
-#'                   output_folder = "~/path/to/pp-results/",
-#'                   file_prefix = "msgfplus-pp-results",
-#'                   return_results = TRUE,
-#'                   verbose = TRUE)
+#' results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/,
+#'                            fasta_file  = "~/path/to/fasta/sequence.fasta,
+#'                            masic_output_folder = "~/path/to/masic-results/",
+#'                            ascore_output_folder = "~/path/to/ascore-results/",
+#'                            proteomics = "ph",
+#'                            study_design_folder = "~/path/to/study-design/",
+#'                            species = "Rattus norvegicus",
+#'                            annotation = "RefSeq",
+#'                            global_results = "~/path/to/global/ratio.txt",
+#'                            output_folder = "~/path/to/pp-results/",
+#'                            file_prefix = "msgfplus-pp-results",
+#'                            return_results = TRUE,
+#'                            verbose = TRUE)
 #' }
 #' @export
 run_plexedpiper <- function(msgf_output_folder, 
