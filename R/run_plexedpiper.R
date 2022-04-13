@@ -25,17 +25,17 @@
 #' @return (list) If `return_results` is TRUE, it returns list with ration and rii data frames
 #' @importFrom Biostrings readAAStringSet
 #' @examples \dontrun{
-#' results <- run_pp(msgf_output_folder = msgf_output_folder,
-#'                   fasta_file  = fasta_file,
-#'                   masic_output_folder = masic_output_folder,
-#'                   ascore_output_folder = ascore_output_folder,
-#'                   proteomics = tolower(proteomics),
-#'                   study_design_folder = study_design_folder,
-#'                   species = species,
-#'                   annotation = annotation,
-#'                   global_results = plexedpiper_global_results_ratio,
-#'                   output_folder = plexedpiper_output_folder,
-#'                   file_prefix = plexedpiper_output_name_prefix,
+#' results <- run_pp(msgf_output_folder = "~/path/to/msgfplus/,
+#'                   fasta_file  = "~/path/to/fasta/sequence.fasta,
+#'                   masic_output_folder = "~/path/to/masic-results/",
+#'                   ascore_output_folder = "~/path/to/ascore-results/",
+#'                   proteomics = "ph",
+#'                   study_design_folder = "~/path/to/study-design/",
+#'                   species = "Rattus norvegicus",
+#'                   annotation = "RefSeq",
+#'                   global_results = "~/path/to/global/ratio.txt",
+#'                   output_folder = "~/path/to/pp-results/",
+#'                   file_prefix = "msgfplus-pp-results",
 #'                   return_results = TRUE,
 #'                   verbose = TRUE)
 #' }
