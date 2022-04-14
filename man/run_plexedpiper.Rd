@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_plexedpiper.R
 \name{run_plexedpiper}
 \alias{run_plexedpiper}
-\title{Run PlexedPiper}
+\title{Wrapper for PlexedPiper}
 \usage{
 run_plexedpiper(
   msgf_output_folder,
@@ -23,62 +23,68 @@ run_plexedpiper(
 )
 }
 \arguments{
-\item{msgf_output_folder}{(MSnID) Path to MSGF+ results folder}
+\item{msgf_output_folder}{(character) Path to MSGF+ results folder}
 
-\item{fasta_file}{(character) Path and fasta file name}
+\item{fasta_file}{(character) Path and FASTA file name}
 
-\item{masic_output_folder}{(data.frame) Masic results folder}
+\item{masic_output_folder}{(data.frame) MASIC results folder}
 
-\item{ascore_output_folder}{(data.frame) AScore result folder}
+\item{ascore_output_folder}{(data.frame) AScore results folder}
 
-\item{proteomics}{(character) One of the following:}
+\item{proteomics}{(character) Either "pr" - proteomics, "ph" -
+phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics}
 
-\item{study_design_folder}{(list) Study design folder}
+\item{study_design_folder}{(character) Folder containing the three study
+design files: fractions.txt, samples.txt, and references.txt}
 
-\item{species}{(character) Scientific name of a specie (e.g. `Rattus norvegicus`, `Homo sapiens`)}
+\item{species}{(character) Scientific name of species (e.g. `Rattus
+norvegicus`, `Homo sapiens`, etc.)}
 
-\item{annotation}{(character) Source for annotations: either `RefSeq` or `Uniprot`}
+\item{annotation}{(character) Source for annotations: either `RefSeq` or
+`Uniprot`}
 
 \item{file_prefix}{(character) Prefix for the file name outputs}
 
-\item{global_results}{(character) Only for PTM experiments. 
-Ratio results from a global protein abundance experiment. 
-If provided, it will infer parsimonious set of accessions. 
-Default is `NULL`}
+\item{global_results}{(character) Only for PTM experiments. Ratio results
+from a global protein abundance experiment. If provided, it will infer
+parsimonious set of accessions.}
 
-\item{write_results_to_file}{(logical) if `TRUE`, write the results to files}
+\item{write_results_to_file}{(logical) Whether to write the results to files.}
 
-\item{output_folder}{(character) Output folder name to save results. 
-(if not provided it will save it to the current directory)}
+\item{output_folder}{(character) Output folder name to save results. If not
+provided, it will save it to the current directory.}
 
-\item{save_env}{(logical) If `TRUE` it saves the R environment to the output folder}
+\item{save_env}{(logical) Whether to save the R environment to the output
+folder.}
 
-\item{return_results}{(logical) If `TRUE` return both ratio and rii results (default `FALSE`)}
+\item{return_results}{(logical) Whether to return both ratio and rii results.}
 
-\item{verbose}{(logical) `TRUE` (default) shows messages}
+\item{verbose}{(logical) Whether to show messages describing steps.}
 }
 \value{
-(list) If `return_results` is TRUE, it returns list with ration and rii data frames
+(list) If `return_results` is `TRUE`, it returns list with ratio and
+  RII data frames.
 }
 \description{
-Provide outputs from MSGF+, MASIC, ASCORE (if PTM), 
-plus other parameters including fasta sequence db, species, annotation, 
-and it returns both the Reported Ion Intensity (RII) and ratio results
+A wrapper function for PlexedPiper that performs all the steps
+  necessary to go from MS-GF+ and MASIC data to Reporter Ion Intensity (RII)
+  and Ratio Results tables used by the MoTrPAC Bioinformatics
+  Center (BIC).
 }
 \examples{
 \dontrun{
-results <- run_pp(msgf_output_folder = msgf_output_folder,
-                  fasta_file  = fasta_file,
-                  masic_output_folder = masic_output_folder,
-                  ascore_output_folder = ascore_output_folder,
-                  proteomics = tolower(proteomics),
-                  study_design_folder = study_design_folder,
-                  species = species,
-                  annotation = annotation,
-                  global_results = plexedpiper_global_results_ratio,
-                  output_folder = plexedpiper_output_folder,
-                  file_prefix = plexedpiper_output_name_prefix,
-                  return_results = TRUE,
-                  verbose = TRUE)
+results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/,
+                           fasta_file  = "~/path/to/fasta/sequence.fasta,
+                           masic_output_folder = "~/path/to/masic-results/",
+                           ascore_output_folder = "~/path/to/ascore-results/",
+                           proteomics = "ph",
+                           study_design_folder = "~/path/to/study-design/",
+                           species = "Rattus norvegicus",
+                           annotation = "RefSeq",
+                           global_results = "~/path/to/global/ratio.txt",
+                           output_folder = "~/path/to/pp-results/",
+                           file_prefix = "msgfplus-pp-results",
+                           return_results = TRUE,
+                           verbose = TRUE)
 }
 }
