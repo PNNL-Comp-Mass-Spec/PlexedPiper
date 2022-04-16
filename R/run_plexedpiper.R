@@ -7,8 +7,8 @@
 #'
 #' @param msgf_output_folder (character) Path to MSGF+ results folder
 #' @param fasta_file (character) Path and FASTA file name
-#' @param masic_output_folder (data.frame) MASIC results folder
-#' @param ascore_output_folder (data.frame) AScore results folder
+#' @param masic_output_folder (character) MASIC results folder
+#' @param ascore_output_folder (character) AScore results folder
 #' @param proteomics (character) Either "pr" - proteomics, "ph" -
 #'   phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics
 #' @param study_design_folder (character) Folder containing the three study
@@ -26,11 +26,13 @@
 #' @param file_prefix (character) Prefix for the file name outputs
 #' @param save_env (logical) Whether to save the R environment to the output
 #'   folder.
-#' @param return_results (logical) Whether to return both ratio and rii results.
+#' @param return_results (logical) Whether to return the ratio and rii results.
 #' @param verbose (logical) Whether to show messages describing steps.
 #'
 #' @return (list) If `return_results` is `TRUE`, it returns list with ratio and
 #'   RII data frames.
+#'
+#' @md
 #'
 #' @importFrom Biostrings readAAStringSet
 #' @importFrom utils read.table write.table
@@ -38,8 +40,8 @@
 #'   extract_sequence_window infer_parsimonious_accessions map_mod_sites
 #'
 #' @examples \dontrun{
-#' results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/,
-#'                            fasta_file  = "~/path/to/fasta/sequence.fasta,
+#' results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
+#'                            fasta_file  = "~/path/to/fasta/sequence.fasta",
 #'                            masic_output_folder = "~/path/to/masic-results/",
 #'                            ascore_output_folder = "~/path/to/ascore-results/",
 #'                            proteomics = "ph",
