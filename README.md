@@ -7,12 +7,13 @@
 
 R package used at PNNL for processing isobaric labeling (e.g. TMT) proteomics
 data. The key inputs are:
+
 * MS/MS identifications from the [MS-GF+ search engine](https://github.com/MSGFPlus/msgfplus)
 * Reporter ion intensities extracted using [MASIC](https://github.com/pnnl-comp-mass-spec/MASIC)
-* Tables outlying study design
-   * table linking dataset to plexes
-   * table linking reporter channels with sample names
-   * table identifying reference within each plex
+* Tables outlining study design
+   + table linking dataset to plexes
+   + table linking reporter channels with sample names
+   + table identifying reference within each plex
 
 ## R Installation and Usage
 
@@ -27,11 +28,13 @@ vignette("tmt_pipeline_v1")
 
 A companion R package with test data based on the MoTrPAC pilot study is available
 here
+
 * [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
 
 ## Docker/Linux installation
 
 PlexedPiper can be run within a [Docker Container](https://www.docker.com/resources/what-container)
+
 * This example `Dockerfile` shows the required system libraries, starting with the base [rocker/TidyVerse](https://hub.docker.com/r/rocker/tidyverse/dockerfile) image
 
 ```Dockerfile

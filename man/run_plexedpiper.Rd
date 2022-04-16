@@ -27,9 +27,9 @@ run_plexedpiper(
 
 \item{fasta_file}{(character) Path and FASTA file name}
 
-\item{masic_output_folder}{(data.frame) MASIC results folder}
+\item{masic_output_folder}{(character) MASIC results folder}
 
-\item{ascore_output_folder}{(data.frame) AScore results folder}
+\item{ascore_output_folder}{(character) AScore results folder}
 
 \item{proteomics}{(character) Either "pr" - proteomics, "ph" -
 phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics}
@@ -37,11 +37,10 @@ phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics}
 \item{study_design_folder}{(character) Folder containing the three study
 design files: fractions.txt, samples.txt, and references.txt}
 
-\item{species}{(character) Scientific name of species (e.g. `Rattus
-norvegicus`, `Homo sapiens`, etc.)}
+\item{species}{(character) Scientific name of species (e.g. \verb{Rattus norvegicus}, \verb{Homo sapiens}, etc.)}
 
-\item{annotation}{(character) Source for annotations: either `RefSeq` or
-`Uniprot`}
+\item{annotation}{(character) Source for annotations: either \code{RefSeq} or
+\code{Uniprot}}
 
 \item{file_prefix}{(character) Prefix for the file name outputs}
 
@@ -57,24 +56,24 @@ provided, it will save it to the current directory.}
 \item{save_env}{(logical) Whether to save the R environment to the output
 folder.}
 
-\item{return_results}{(logical) Whether to return both ratio and rii results.}
+\item{return_results}{(logical) Whether to return the ratio and rii results.}
 
 \item{verbose}{(logical) Whether to show messages describing steps.}
 }
 \value{
-(list) If `return_results` is `TRUE`, it returns list with ratio and
-  RII data frames.
+(list) If \code{return_results} is \code{TRUE}, it returns list with ratio and
+RII data frames.
 }
 \description{
 A wrapper function for PlexedPiper that performs all the steps
-  necessary to go from MS-GF+ and MASIC data to Reporter Ion Intensity (RII)
-  and Ratio Results tables used by the MoTrPAC Bioinformatics
-  Center (BIC).
+necessary to go from MS-GF+ and MASIC data to Reporter Ion Intensity (RII)
+and Ratio Results tables used by the MoTrPAC Bioinformatics
+Center (BIC).
 }
 \examples{
 \dontrun{
-results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/,
-                           fasta_file  = "~/path/to/fasta/sequence.fasta,
+results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
+                           fasta_file  = "~/path/to/fasta/sequence.fasta",
                            masic_output_folder = "~/path/to/masic-results/",
                            ascore_output_folder = "~/path/to/ascore-results/",
                            proteomics = "ph",
