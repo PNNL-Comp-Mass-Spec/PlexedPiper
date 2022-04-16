@@ -15,6 +15,14 @@ data. The key inputs are:
    + table linking reporter channels with sample names
    + table identifying reference within each plex
 
+## Updates
+
+Updates to this package are detailed in the [NEWS.md](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/blob/master/NEWS.md) file and in the [releases](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/releases).
+
+## Website
+
+The [PlexedPiper pkgdown website](https://pnnl-comp-mass-spec.github.io/PlexedPiper/) contains pre-built vignettes as well as updates and documentation.
+
 ## R Installation and Usage
 
 ```R
@@ -79,7 +87,7 @@ Then compilation of the vignettes that imply access to PNNL DMS should proceed s
 
 Original Location
 ====
-The orignal location is on the [vladpetyuk](https://github.com/vladpetyuk) account, repo [PlexedPiper](https://github.com/vladpetyuk/PlexedPiper).
+The original location is on the [vladpetyuk](https://github.com/vladpetyuk) account, repo [PlexedPiper](https://github.com/vladpetyuk/PlexedPiper).
 
 
 
