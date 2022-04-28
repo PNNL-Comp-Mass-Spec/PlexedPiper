@@ -17,9 +17,20 @@
 #'   norvegicus`, `Homo sapiens`, etc.)
 #' @param annotation (character) Source for annotations: either `RefSeq` or
 #'   `Uniprot`
+#' @param unique_only (logical). If \code{TRUE}, peptides mapping to multiple 
+#' accessions are dropped and only unique are retained. 
+#' If \code{FALSE}, then shared peptides assigned according to 
+#' Occam's razor rule, i.e., a shared peptide is assigned to a protein with 
+#' larger number of unique peptides. If the number of unique peptides 
+#' is the same, then to the first accession. Default is \code{FALSE}.
 #' @param global_results (character) Only for PTM experiments. Ratio results
 #'   from a global protein abundance experiment. If provided, it will infer
 #'   parsimonious set of accessions.
+#' @param refine_prior (logical). if \code{FALSE} (default), peptides are 
+#' allowed to match multiple proteins in the prior. 
+#' That is, the greedy set cover algorithm is only applied to the set of 
+#' proteins not in the prior. If \code{TRUE}, the algorithm is applied to the 
+#' prior and non-prior sets separately before combining.
 #' @param write_results_to_file (logical) Whether to write the results to files.
 #' @param output_folder (character) Output folder name to save results. If not
 #'   provided, it will save it to the current directory.
@@ -55,8 +66,6 @@
 #'                            verbose = TRUE)
 #' }
 #' @export
-
-
 run_plexedpiper <- function(msgf_output_folder,
                             fasta_file,
                             masic_output_folder,
@@ -66,7 +75,9 @@ run_plexedpiper <- function(msgf_output_folder,
                             species,
                             annotation,
                             file_prefix = NULL,
+                            unique_only = FALSE,
                             global_results = NULL,
+                            refine_prior = FALSE,
                             write_results_to_file = TRUE,
                             output_folder = NULL,
                             save_env = FALSE,
@@ -155,7 +166,10 @@ run_plexedpiper <- function(msgf_output_folder,
     prior <- unique(global_ratios$protein_id)
   }
 
-  msnid <- infer_parsimonious_accessions(msnid, prior = prior)
+  msnid <- infer_parsimonious_accessions(msnid, 
+                                         unique_only = unique_only,
+                                         prior = prior, 
+                                         refine_prior = refine_prior)
 
   if (proteomics == "pr") {
     if (verbose) message("   + Compute protein coverage")

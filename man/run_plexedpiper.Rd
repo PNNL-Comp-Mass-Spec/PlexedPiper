@@ -14,7 +14,9 @@ run_plexedpiper(
   species,
   annotation,
   file_prefix = NULL,
+  unique_only = FALSE,
   global_results = NULL,
+  refine_prior = FALSE,
   write_results_to_file = TRUE,
   output_folder = NULL,
   save_env = FALSE,
@@ -44,9 +46,22 @@ design files: fractions.txt, samples.txt, and references.txt}
 
 \item{file_prefix}{(character) Prefix for the file name outputs}
 
+\item{unique_only}{(logical). If \code{TRUE}, peptides mapping to multiple
+accessions are dropped and only unique are retained.
+If \code{FALSE}, then shared peptides assigned according to
+Occam's razor rule, i.e., a shared peptide is assigned to a protein with
+larger number of unique peptides. If the number of unique peptides
+is the same, then to the first accession. Default is \code{FALSE}.}
+
 \item{global_results}{(character) Only for PTM experiments. Ratio results
 from a global protein abundance experiment. If provided, it will infer
 parsimonious set of accessions.}
+
+\item{refine_prior}{(logical). if \code{FALSE} (default), peptides are
+allowed to match multiple proteins in the prior.
+That is, the greedy set cover algorithm is only applied to the set of
+proteins not in the prior. If \code{TRUE}, the algorithm is applied to the
+prior and non-prior sets separately before combining.}
 
 \item{write_results_to_file}{(logical) Whether to write the results to files.}
 
