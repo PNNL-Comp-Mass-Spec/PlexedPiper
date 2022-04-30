@@ -3,9 +3,10 @@
 #' @description Assembles data in format compliant with BIC requirements.
 #'
 #' @details
-#' These functions require columns "redundantAccessions", "noninferableProteins"
-#' and "percentAACoverage" to be present in `psms(msnid)`, the last of which is
-#' created with \code{\link[MSnID]{compute_accession_coverage}}.
+#' The `ratio` and `rii` functions require columns "redundantAccessions",
+#' "noninferableProteins" and "percentAACoverage" (created with
+#' \code{\link[MSnID]{compute_accession_coverage}}) to be present in
+#' `psms(msnid)`.
 #'
 #' * `make_rii_peptide_gl`: returns 'RII_peptide.txt' table (global)
 #' * `make_results_ratio_gl`: returns 'results_ratio.txt' table (global)
@@ -28,9 +29,9 @@
 #' @param references (object coercible to `data.table`) study design table
 #'   describing reference value calculation
 #' @param annotation (character) format of `accessions(msnid)`. Either
-#'   `"refseq"` or `"uniprot"` (case does not matter).
+#'   `"refseq"` or `"uniprot"` (case insensitive).
 #' @param org_name (character) scientific name of organism (e.g. `"Homo
-#'   sapiens"`, `"Rattus norvegicus"`, `"Mus musculus"`, etc.).
+#'   sapiens"`, `"Rattus norvegicus"`, `"Mus musculus"`, etc.). Case sensitive.
 #' @param sep (character) used to concatenate protein, SiteID, and peptide.
 #' @param collapse (character) used to collapse proteins in
 #'   `assess_redundant_protein_matches`
@@ -437,6 +438,7 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
   # assign each accession to its peptide signature
   res <- psms(msnid) %>%
     select(accession, peptide) %>%
+    distinct() %>%
     group_by(accession) %>%
     arrange(peptide) %>%
     summarize(peptideSignature = paste(peptide, collapse=collapse))

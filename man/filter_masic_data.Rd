@@ -9,9 +9,11 @@ filter_masic_data(x, interference_score_threshold = 0.9, s2n_threshold = 4)
 \arguments{
 \item{x}{(data.frame) collated MASIC output}
 
-\item{interference_score_threshold}{(numeric) fetch extra metrics that MASIC
-extracts from dataset or not. Higher the number, the cleaner parent ion at
-MS1 level. Default is 0.9.}
+\item{interference_score_threshold}{(numeric) The interference score reflects
+the proportion of the ion population isolated for fragmentation that is due
+to the targeted ion. \code{1 - InferferenceScore} is due to co-isolated species.
+The higher the interference score, the cleaner the parent ion at the MS1
+level. Default is 0.9.}
 
 \item{s2n_threshold}{(numeric) S/N calculated by vendor and extracted MASIC
 from raw files. Default is 4.}
@@ -20,16 +22,17 @@ from raw files. Default is 4.}
 (data.frame) filtered MASIC output
 }
 \description{
-Filtering MASIC data by InterferenceScore and S/N of individual channels.
-Note, function in its current form also drops 40 columns out of the
-data.frame. E.g. for TMT10 the table contains 62 columns. After filtering,
-the left columns are 10 TMT channels, dataset and scan.
+Filtering MASIC data by interference score and signal-to-noise ratio (S/N) of
+individual channels. Note: function in its current form also drops 40 columns
+out of the \code{data.frame}. E.g. for TMT10 the table contains 62 columns. After
+filtering, the remaining columns are the 10 TMT channels, \code{Dataset}, and
+\code{ScanNumber}.
 }
 \details{
-Default values interference_score_threshold = 0.9 and s2n_threshold = 4 are
-fairly stringent. The least recomended setting is
-interference_score_threshold = 0.5 and s2n_threshold = 0. If not filtering
-intended do filter_masic_data(x,0,0) call.
+Default values \code{interference_score_threshold = 0.9} and \code{s2n_threshold = 4}
+are fairly stringent. We recommend at least setting
+\code{interference_score_threshold = 0.5} and \code{s2n_threshold = 0}. If filtering is
+not intended, use \code{filter_masic_data(x,0,0)}.
 }
 \examples{
 \dontrun{

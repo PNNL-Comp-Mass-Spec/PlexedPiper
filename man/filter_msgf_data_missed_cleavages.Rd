@@ -30,3 +30,6 @@ msnid <-  filter_msgf_data_missed_cleavages(msnid, 2)
 show(msnid)
 }
 }
+\seealso{
+\code{\link[MSnID]{assess_missed_cleavages}}
+}

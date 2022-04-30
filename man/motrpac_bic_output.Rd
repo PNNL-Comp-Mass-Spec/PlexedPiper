@@ -72,9 +72,9 @@ sample names with TMT channels and PlexID}
 describing reference value calculation}
 
 \item{annotation}{(character) format of \code{accessions(msnid)}. Either
-\code{"refseq"} or \code{"uniprot"} (case does not matter).}
+\code{"refseq"} or \code{"uniprot"} (case insensitive).}
 
-\item{org_name}{(character) scientific name of organism (e.g. \code{"Homo sapiens"}, \code{"Rattus norvegicus"}, \code{"Mus musculus"}, etc.).}
+\item{org_name}{(character) scientific name of organism (e.g. \code{"Homo sapiens"}, \code{"Rattus norvegicus"}, \code{"Mus musculus"}, etc.). Case sensitive.}
 
 \item{sep}{(character) used to concatenate protein, SiteID, and peptide.}
 
@@ -85,9 +85,10 @@ describing reference value calculation}
 Assembles data in format compliant with BIC requirements.
 }
 \details{
-These functions require columns "redundantAccessions", "noninferableProteins"
-and "percentAACoverage" to be present in \code{psms(msnid)}, the last of which is
-created with \code{\link[MSnID]{compute_accession_coverage}}.
+The \code{ratio} and \code{rii} functions require columns "redundantAccessions",
+"noninferableProteins" and "percentAACoverage" (created with
+\code{\link[MSnID]{compute_accession_coverage}}) to be present in
+\code{psms(msnid)}.
 \itemize{
 \item \code{make_rii_peptide_gl}: returns 'RII_peptide.txt' table (global)
 \item \code{make_results_ratio_gl}: returns 'results_ratio.txt' table (global)

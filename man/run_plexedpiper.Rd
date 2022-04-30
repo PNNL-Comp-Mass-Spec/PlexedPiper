@@ -27,7 +27,7 @@ run_plexedpiper(
 \arguments{
 \item{msgf_output_folder}{(character) Path to MSGF+ results folder}
 
-\item{fasta_file}{(character) Path and FASTA file name}
+\item{fasta_file}{(character) Path to FASTA file}
 
 \item{masic_output_folder}{(character) MASIC results folder}
 
@@ -37,31 +37,31 @@ run_plexedpiper(
 phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics}
 
 \item{study_design_folder}{(character) Folder containing the three study
-design files: fractions.txt, samples.txt, and references.txt}
+design tables: fractions.txt, samples.txt, and references.txt}
 
-\item{species}{(character) Scientific name of species (e.g. \verb{Rattus norvegicus}, \verb{Homo sapiens}, etc.)}
+\item{species}{(character) Scientific name of species (e.g. "Rattus
+norvegicus", "Homo sapiens", etc.)}
 
 \item{annotation}{(character) Source for annotations: either \code{RefSeq} or
-\code{Uniprot}}
+\code{UniProt} (case insensitive).}
 
-\item{file_prefix}{(character) Prefix for the file name outputs}
+\item{file_prefix}{(character) Prefix for the file name outputs.}
 
-\item{unique_only}{(logical). If \code{TRUE}, peptides mapping to multiple
-accessions are dropped and only unique are retained.
-If \code{FALSE}, then shared peptides assigned according to
-Occam's razor rule, i.e., a shared peptide is assigned to a protein with
-larger number of unique peptides. If the number of unique peptides
-is the same, then to the first accession. Default is \code{FALSE}.}
+\item{unique_only}{(logical) Whether to discard peptides that match multiple
+proteins in the parsimonious protein inference step. Default \code{FALSE}.}
 
 \item{global_results}{(character) Only for PTM experiments. Ratio results
-from a global protein abundance experiment. If provided, it will infer
-parsimonious set of accessions.}
+from a global protein abundance experiment. If provided, prioritized
+inference will be performed. Otherwise, parsimonious inference is performed
+without a prior. See \code{\link[MSnID]{infer_parsimonious_accessions}} for
+details.}
 
-\item{refine_prior}{(logical). if \code{FALSE} (default), peptides are
-allowed to match multiple proteins in the prior.
-That is, the greedy set cover algorithm is only applied to the set of
-proteins not in the prior. If \code{TRUE}, the algorithm is applied to the
-prior and non-prior sets separately before combining.}
+\item{refine_prior}{(logical) if \code{FALSE} (default), peptides are allowed
+to match multiple proteins in the prior. That is, the greedy set cover
+algorithm is only applied to the set of proteins not in the prior. If
+\code{TRUE}, the algorithm is applied to the prior and non-prior sets
+separately before combining. See
+\code{\link[MSnID]{infer_parsimonious_accessions}} for more details.}
 
 \item{write_results_to_file}{(logical) Whether to write the results to files.}
 
@@ -82,8 +82,7 @@ RII data frames.
 \description{
 A wrapper function for PlexedPiper that performs all the steps
 necessary to go from MS-GF+ and MASIC data to Reporter Ion Intensity (RII)
-and Ratio Results tables used by the MoTrPAC Bioinformatics
-Center (BIC).
+and Ratio Results tables used by the MoTrPAC Bioinformatics Center (BIC).
 }
 \examples{
 \dontrun{
@@ -96,6 +95,8 @@ results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
                            species = "Rattus norvegicus",
                            annotation = "RefSeq",
                            global_results = "~/path/to/global/ratio.txt",
+                           unique_only = FALSE,
+                           refine_prior = FALSE,
                            output_folder = "~/path/to/pp-results/",
                            file_prefix = "msgfplus-pp-results",
                            return_results = TRUE,

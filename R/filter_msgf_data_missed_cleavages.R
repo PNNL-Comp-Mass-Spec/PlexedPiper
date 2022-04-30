@@ -8,6 +8,9 @@
 #'
 #' @return (MSnID object) filtered MSGF output
 #'
+#' @seealso
+#' \code{\link[MSnID]{assess_missed_cleavages}}
+#'
 #' @importFrom MSnID MSnIDFilter apply_filter assess_missed_cleavages
 #'
 #' @export filter_msgf_data_missed_cleavages

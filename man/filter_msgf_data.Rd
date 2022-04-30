@@ -21,7 +21,9 @@ filter_msgf_data_protein_level(msnid, ...)
 \arguments{
 \item{msnid}{(MSnID object) collated MSGF output}
 
-\item{level}{(character) Level at which to perform FDR filter}
+\item{level}{(character) Level at which to perform FDR filter. The name of a
+column in \code{psms(msnid)}. Currently, only \code{"peptide"} or \code{"accession"} are
+supported.}
 
 \item{fdr.max}{(numeric) Maximum acceptable FDR. Default is 0.01 (1\%).}
 
@@ -36,9 +38,11 @@ algorithm.}
 (MSnID object) filtered MSGF output
 }
 \description{
-Filtering MSGF data. In this implementation the peptide level filter
+Filtering MSGF data. In this implementation, the peptide-level filter
 optimizes both ppm and PepQValue thresholds to achieve maximum number of
-peptide identifications within given FDR constrain.
+peptide identifications within a given FDR constraint. The accession-level
+filter optimizes based on \code{peptides_per_1000aa}, so
+\code{\link{compute_num_peptides_per_1000aa}} must be used first.
 }
 \examples{
 \dontrun{
@@ -57,4 +61,9 @@ msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 msnid <- filter_msgf_data(msnid, "accession", 0.01) # 1\% FDR at protein level
 show(msnid)
 }
+}
+\seealso{
+\code{\link[MSnID]{MSnIDFilter}}
+\code{\link[MSnID]{optimize_filter}}
+\code{\link[MSnID]{apply_filter}}
 }

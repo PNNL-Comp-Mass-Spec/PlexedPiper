@@ -1,14 +1,18 @@
 #' Filtering MSGF Data
 #'
-#' Filtering MSGF data. In this implementation the peptide level filter
+#' Filtering MSGF data. In this implementation, the peptide-level filter
 #' optimizes both ppm and PepQValue thresholds to achieve maximum number of
-#' peptide identifications within given FDR constrain.
+#' peptide identifications within a given FDR constraint. The accession-level
+#' filter optimizes based on `peptides_per_1000aa`, so
+#' \code{\link{compute_num_peptides_per_1000aa}} must be used first.
 #'
 #' @md
 #'
 #' @param msnid (MSnID object) collated MSGF output
 #' @param fdr.max (numeric) Maximum acceptable FDR. Default is 0.01 (1%).
-#' @param level (character) Level at which to perform FDR filter
+#' @param level (character) Level at which to perform FDR filter. The name of a
+#'   column in `psms(msnid)`. Currently, only `"peptide"` or `"accession"` are
+#'   supported.
 #' @param n.iter.grid (numeric) number of grid-distributed evaluation points.
 #' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization
 #'   algorithm.
@@ -16,7 +20,12 @@
 #'
 #' @return (MSnID object) filtered MSGF output
 #'
-#' @importFrom MSnID MSnIDFilter MSnIDFilter optimize_filter
+#' @seealso
+#' \code{\link[MSnID]{MSnIDFilter}}
+#' \code{\link[MSnID]{optimize_filter}}
+#' \code{\link[MSnID]{apply_filter}}
+#'
+#' @importFrom MSnID MSnIDFilter optimize_filter
 #'   mass_measurement_error apply_filter
 #'
 #' @examples
