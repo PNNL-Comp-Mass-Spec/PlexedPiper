@@ -2,7 +2,7 @@ Package: PlexedPiper
 Type: Package
 Title: Pipeline for isobaric quantification
 Version: 0.3.5
-Date: 2022-04-28
+Date: 2022-05-03
 Author: Vladislav Petyuk vladislav.petyuk@pnnl.gov
 Maintainer: Vladislav Petyuk <vladislav.petyuk@pnnl.gov>
 Description: Pipeline for isobaric quantification.
