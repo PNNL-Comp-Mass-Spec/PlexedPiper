@@ -9,7 +9,7 @@ compute_num_peptides_per_1000aa(msnid, path_to_FASTA)
 \arguments{
 \item{msnid}{(MSnID object) MS/MS ID data}
 
-\item{path_to_FASTA}{(numeric) Maximum acceptable FDR rate. Default is 0.01.}
+\item{path_to_FASTA}{(character) Path to FASTA file.}
 }
 \value{
 (MSnID object) MS/MS ID data with computed number of peptides per

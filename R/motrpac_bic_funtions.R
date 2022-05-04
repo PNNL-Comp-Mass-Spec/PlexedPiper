@@ -3,9 +3,10 @@
 #' @description Assembles data in format compliant with BIC requirements.
 #'
 #' @details
-#' These functions require columns "redundantAccessions", "noninferableProteins"
-#' and "percentAACoverage" to be present in `psms(msnid)`, the last of which is
-#' created with \code{\link[MSnID]{compute_accession_coverage}}.
+#' The `ratio` and `rii` functions require columns "redundantAccessions",
+#' "noninferableProteins" and "percentAACoverage" (created with
+#' \code{\link[MSnID]{compute_accession_coverage}}) to be present in
+#' `psms(msnid)`.
 #'
 #' * `make_rii_peptide_gl`: returns 'RII_peptide.txt' table (global)
 #' * `make_results_ratio_gl`: returns 'results_ratio.txt' table (global)
@@ -28,9 +29,9 @@
 #' @param references (object coercible to `data.table`) study design table
 #'   describing reference value calculation
 #' @param annotation (character) format of `accessions(msnid)`. Either
-#'   `"refseq"` or `"uniprot"` (case does not matter).
+#'   `"refseq"` or `"uniprot"` (case insensitive).
 #' @param org_name (character) scientific name of organism (e.g. `"Homo
-#'   sapiens"`, `"Rattus norvegicus"`, `"Mus musculus"`, etc.).
+#'   sapiens"`, `"Rattus norvegicus"`, `"Mus musculus"`, etc.). Case sensitive.
 #' @param sep (character) used to concatenate protein, SiteID, and peptide.
 #' @param collapse (character) used to collapse proteins in
 #'   `assess_redundant_protein_matches`
@@ -133,17 +134,20 @@ make_rii_peptide_gl <- function(msnid, masic_data,
     rownames_to_column("Specie")
 
   ## Fetch conversion table
-  stopifnot(annotation %in% c("RefSeq", "UniProt"))
-  if (annotation == "RefSeq") {
+  annotation <- toupper(annotation)
+  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
-  } else if (annotation == "UniProt") {
+  } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   }
-  conv <- suppressWarnings(fetch_conversion_table(org_name,
-                                                  from = toupper(annotation),
-                                                  to = c("SYMBOL", "ENTREZID")))
+  conv <- suppressWarnings(
+    fetch_conversion_table(org_name,
+                           from = annotation,
+                           to = c("SYMBOL", "ENTREZID"))
+  )
 
   # Feature data
   feature_data <- crosstab %>%
@@ -152,7 +156,7 @@ make_rii_peptide_gl <- function(msnid, masic_data,
            sequence = sub("(^.*)@(.*)", "\\2", Specie),
            organism_name = org_name) %>%
     mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = toupper(annotation))) %>%
+    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
     select(-ANNOTATION) %>%
     rename(gene_symbol = SYMBOL,
            entrez_id = ENTREZID)
@@ -196,24 +200,27 @@ make_results_ratio_gl <- function(msnid, masic_data,
     rownames_to_column("protein_id")
 
   ## Fetch conversation table
-  stopifnot(annotation %in% c("RefSeq", "UniProt"))
-  if (annotation == "RefSeq") {
+  annotation <- toupper(annotation)
+  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
-  } else if (annotation == "UniProt") {
+  } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   }
-  conv <- suppressWarnings(fetch_conversion_table(org_name,
-                                                  from = toupper(annotation),
-                                                  to = c("SYMBOL", "ENTREZID")))
+  conv <- suppressWarnings(
+    fetch_conversion_table(org_name,
+                           from = annotation,
+                           to = c("SYMBOL", "ENTREZID"))
+  )
 
   ## Create feature data
   feature_data <- crosstab %>%
     select(protein_id) %>%
     mutate(organism_name = org_name) %>%
     mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = toupper(annotation))) %>%
+    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
     select(-ANNOTATION) %>%
     rename(gene_symbol = SYMBOL,
            entrez_id = ENTREZID)
@@ -277,17 +284,20 @@ make_rii_peptide_ph <- function(msnid, masic_data,
     rownames_to_column("Specie")
 
   ## Fetch conversation table
-  stopifnot(annotation %in% c("RefSeq", "UniProt"))
-  if (annotation == "RefSeq") {
+  annotation <- toupper(annotation)
+  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
-  } else if (annotation == "UniProt") {
+  } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   }
-  conv <- suppressWarnings(fetch_conversion_table(org_name,
+  conv <- suppressWarnings(
+    fetch_conversion_table(org_name,
                                                   from = toupper(annotation),
-                                                  to = c("SYMBOL", "ENTREZID")))
+                                                  to = c("SYMBOL", "ENTREZID"))
+    )
 
 
   ## Create RII peptide table
@@ -299,7 +309,7 @@ make_rii_peptide_ph <- function(msnid, masic_data,
     mutate(ptm_peptide = paste(ptm_id, sequence, sep=sep),
            organism_name = org_name) %>%
     mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = toupper(annotation))) %>%
+    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
     select(-ANNOTATION) %>%
     rename(gene_symbol = SYMBOL,
            entrez_id = ENTREZID)
@@ -352,17 +362,20 @@ make_results_ratio_ph <- function(msnid, masic_data,
     rownames_to_column("Specie")
 
   ## Fetch conversation table
-  stopifnot(annotation %in% c("RefSeq", "UniProt"))
-  if (annotation == "RefSeq") {
+  annotation <- toupper(annotation)
+  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
-  } else if (annotation == "UniProt") {
+  } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   }
-  conv <- suppressWarnings(fetch_conversion_table(org_name,
+  conv <- suppressWarnings(
+    fetch_conversion_table(org_name,
                                                   from = toupper(annotation),
-                                                  to = c("SYMBOL", "ENTREZID")))
+                                                  to = c("SYMBOL", "ENTREZID"))
+    )
 
   ## Create RII peptide table
   feature_data <- crosstab %>%
@@ -371,7 +384,7 @@ make_results_ratio_ph <- function(msnid, masic_data,
            ptm_id = sub("(^.*)@(.*)", "\\2", Specie),
            organism_name = org_name) %>%
     mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = toupper(annotation))) %>%
+    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
     select(-ANNOTATION) %>%
     rename(gene_symbol = SYMBOL,
            entrez_id = ENTREZID)
@@ -437,6 +450,7 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
   # assign each accession to its peptide signature
   res <- psms(msnid) %>%
     select(accession, peptide) %>%
+    distinct() %>%
     group_by(accession) %>%
     arrange(peptide) %>%
     summarize(peptideSignature = paste(peptide, collapse=collapse))

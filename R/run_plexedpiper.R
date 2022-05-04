@@ -2,28 +2,37 @@
 #'
 #' @description A wrapper function for PlexedPiper that performs all the steps
 #'   necessary to go from MS-GF+ and MASIC data to Reporter Ion Intensity (RII)
-#'   and Ratio Results tables used by the MoTrPAC Bioinformatics
-#'   Center (BIC).
+#'   and Ratio Results tables used by the MoTrPAC Bioinformatics Center (BIC).
 #'
 #' @param msgf_output_folder (character) Path to MSGF+ results folder
-#' @param fasta_file (character) Path and FASTA file name
+#' @param fasta_file (character) Path to FASTA file
 #' @param masic_output_folder (character) MASIC results folder
 #' @param ascore_output_folder (character) AScore results folder
 #' @param proteomics (character) Either "pr" - proteomics, "ph" -
 #'   phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics
 #' @param study_design_folder (character) Folder containing the three study
-#'   design files: fractions.txt, samples.txt, and references.txt
-#' @param species (character) Scientific name of species (e.g. `Rattus
-#'   norvegicus`, `Homo sapiens`, etc.)
+#'   design tables: fractions.txt, samples.txt, and references.txt
+#' @param species (character) Scientific name of species (e.g. "Rattus
+#'   norvegicus", "Homo sapiens", etc.)
 #' @param annotation (character) Source for annotations: either `RefSeq` or
-#'   `Uniprot`
+#'   `UniProt` (case insensitive).
 #' @param global_results (character) Only for PTM experiments. Ratio results
-#'   from a global protein abundance experiment. If provided, it will infer
-#'   parsimonious set of accessions.
+#'   from a global protein abundance experiment. If provided, prioritized
+#'   inference will be performed. Otherwise, parsimonious inference is performed
+#'   without a prior. See \code{\link[MSnID]{infer_parsimonious_accessions}} for
+#'   details.
+#' @param unique_only (logical) Whether to discard peptides that match multiple
+#'   proteins in the parsimonious protein inference step. Default \code{FALSE}.
+#' @param refine_prior (logical) if \code{FALSE} (default), peptides are allowed
+#'   to match multiple proteins in the prior. That is, the greedy set cover
+#'   algorithm is only applied to the set of proteins not in the prior. If
+#'   \code{TRUE}, the algorithm is applied to the prior and non-prior sets
+#'   separately before combining. See
+#'   \code{\link[MSnID]{infer_parsimonious_accessions}} for more details.
 #' @param write_results_to_file (logical) Whether to write the results to files.
 #' @param output_folder (character) Output folder name to save results. If not
 #'   provided, it will save it to the current directory.
-#' @param file_prefix (character) Prefix for the file name outputs
+#' @param file_prefix (character) Prefix for the file name outputs.
 #' @param save_env (logical) Whether to save the R environment to the output
 #'   folder.
 #' @param return_results (logical) Whether to return the ratio and rii results.
@@ -31,6 +40,7 @@
 #'
 #' @return (list) If `return_results` is `TRUE`, it returns list with ratio and
 #'   RII data frames.
+#'
 #'
 #' @md
 #'
@@ -49,14 +59,14 @@
 #'                            species = "Rattus norvegicus",
 #'                            annotation = "RefSeq",
 #'                            global_results = "~/path/to/global/ratio.txt",
+#'                            unique_only = FALSE,
+#'                            refine_prior = FALSE,
 #'                            output_folder = "~/path/to/pp-results/",
 #'                            file_prefix = "msgfplus-pp-results",
 #'                            return_results = TRUE,
 #'                            verbose = TRUE)
 #' }
 #' @export
-
-
 run_plexedpiper <- function(msgf_output_folder,
                             fasta_file,
                             masic_output_folder,
@@ -66,7 +76,9 @@ run_plexedpiper <- function(msgf_output_folder,
                             species,
                             annotation,
                             file_prefix = NULL,
+                            unique_only = FALSE,
                             global_results = NULL,
+                            refine_prior = FALSE,
                             write_results_to_file = TRUE,
                             output_folder = NULL,
                             save_env = FALSE,
@@ -155,7 +167,10 @@ run_plexedpiper <- function(msgf_output_folder,
     prior <- unique(global_ratios$protein_id)
   }
 
-  msnid <- infer_parsimonious_accessions(msnid, prior = prior)
+  msnid <- infer_parsimonious_accessions(msnid,
+                                         unique_only = unique_only,
+                                         prior = prior,
+                                         refine_prior = refine_prior)
 
   if (proteomics == "pr") {
     if (verbose) message("   + Compute protein coverage")

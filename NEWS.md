@@ -1,3 +1,10 @@
+# PlexedPiper 0.3.5 (2022-05-04)
+
+* Added `unique_only` and `refine_prior` arguments to `run_plexedpiper`. 
+  Requires an update to a version of [MSnID](https://github.com/PNNL-Comp-Mass-Spec/MSnID) built on or after 2022-04-26--when the `refine_prior` argument was added to `infer_parsimonious_accessions`.
+* Minor documentation changes.
+
+
 # PlexedPiper 0.3.4 (2022-04-15)
 
 * Added this *NEWS* file.

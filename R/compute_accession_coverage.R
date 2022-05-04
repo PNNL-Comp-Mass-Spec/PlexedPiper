@@ -3,7 +3,7 @@
 #' Computing number of peptides per 1000 amino acids.
 #'
 #' @param msnid (MSnID object) MS/MS ID data
-#' @param path_to_FASTA (numeric) Maximum acceptable FDR rate. Default is 0.01.
+#' @param path_to_FASTA (character) Path to FASTA file.
 #'
 #' @return (MSnID object) MS/MS ID data with computed number of peptides per
 #'   1000 aa. Added column name - "peptides_per_1000aa".
