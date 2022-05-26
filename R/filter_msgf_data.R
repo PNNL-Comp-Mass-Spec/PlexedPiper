@@ -12,7 +12,9 @@
 #' @param fdr.max (numeric) Maximum acceptable FDR. Default is 0.01 (1%).
 #' @param level (character) Level at which to perform FDR filter. The name of a
 #'   column in `psms(msnid)`. Currently, only `"peptide"` or `"accession"` are
-#'   supported.
+#'   supported. The added level `SiteID` makes sense only for PTM data and 
+#'   first requires mapping of the modification site using
+#'    `MSnID::map_mod_sites`.
 #' @param n.iter.grid (numeric) number of grid-distributed evaluation points.
 #' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization
 #'   algorithm.
@@ -58,31 +60,15 @@ filter_msgf_data <- function(msnid,
   on.exit(gc(verbose = FALSE), add = TRUE)
 
   # Check input
-  level <- match.arg(level, choices = c("peptide", "accession"))
+  level <- match.arg(level, choices = c("peptide", "accession", "SiteID"))
+  
+  if(level == "SiteID" & !("SiteID" %in% names(msnid)))
+     stop("Column 'SiteID' is not in the MSnID object. Please map the PTMs first.")
 
   keep_cols <- c(level, "isDecoy") # columns to calculate FDR
 
   # Setup
-  if (level == "peptide") {
-    # Create columns for peptide filtering
-    # Can not use data.table syntax if the msnid has been modified at all,
-    # as it results in the "Invalid .internal.selfref" warning and
-    # columns not being created.
-    msnid$msmsScore <- -log10(msnid$PepQValue)
-    msnid$absParentMassErrorPPM <- abs(mass_measurement_error(msnid))
-
-    # Create MSnID of minimum size
-    suppressMessages(msnid_small <- MSnID())
-    # Add filter criteria columns
-    keep_cols <- c(keep_cols, "msmsScore", "absParentMassErrorPPM")
-    msnid_small@psms <- unique(msnid@psms[, keep_cols, with = FALSE])
-
-    # Create filter object
-    filtObj <- MSnIDFilter(msnid_small)
-    filtObj$absParentMassErrorPPM <- list(comparison = "<", threshold = 10)
-    filtObj$msmsScore <- list(comparison = ">", threshold = 2)
-    method <- "Nelder-Mead"
-  } else {
+  if (level == "accession") {
     # Create MSnID of minimum size
     suppressMessages(msnid_small <- MSnID())
     # Add filter criteria column
@@ -93,7 +79,27 @@ filter_msgf_data <- function(msnid,
     filtObj <- MSnIDFilter(msnid_small)
     filtObj$peptides_per_1000aa <- list(comparison = ">", threshold = 1)
     method <- "SANN"
+  } else {
+     # Create columns for peptide filtering
+     # Can not use data.table syntax if the msnid has been modified at all,
+     # as it results in the "Invalid .internal.selfref" warning and
+     # columns not being created.
+     msnid$msmsScore <- -log10(msnid$PepQValue)
+     msnid$absParentMassErrorPPM <- abs(mass_measurement_error(msnid))
+     
+     # Create MSnID of minimum size
+     suppressMessages(msnid_small <- MSnID())
+     # Add filter criteria columns
+     keep_cols <- c(keep_cols, "msmsScore", "absParentMassErrorPPM")
+     msnid_small@psms <- unique(msnid@psms[, keep_cols, with = FALSE])
+     
+     # Create filter object
+     filtObj <- MSnIDFilter(msnid_small)
+     filtObj$absParentMassErrorPPM <- list(comparison = "<", threshold = 10)
+     filtObj$msmsScore <- list(comparison = ">", threshold = 2)
+     method <- "Nelder-Mead"
   }
+  
 
   # step 1
   filtObj.grid <- optimize_filter(filtObj,
@@ -123,4 +129,10 @@ filter_msgf_data_peptide_level <- function(msnid, ...) {
 #' @rdname filter_msgf_data
 filter_msgf_data_protein_level <- function(msnid, ...) {
   filter_msgf_data(msnid, level="accession", ...)
+}
+
+#' @export
+#' @rdname filter_msgf_data
+filter_msgf_data_SiteID_level <- function(msnid, ...) {
+   filter_msgf_data(msnid, level="SiteID", ...)
 }

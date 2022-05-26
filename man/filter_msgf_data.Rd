@@ -4,6 +4,7 @@
 \alias{filter_msgf_data}
 \alias{filter_msgf_data_peptide_level}
 \alias{filter_msgf_data_protein_level}
+\alias{filter_msgf_data_SiteID_level}
 \title{Filtering MSGF Data}
 \usage{
 filter_msgf_data(
@@ -17,13 +18,17 @@ filter_msgf_data(
 filter_msgf_data_peptide_level(msnid, ...)
 
 filter_msgf_data_protein_level(msnid, ...)
+
+filter_msgf_data_SiteID_level(msnid, ...)
 }
 \arguments{
 \item{msnid}{(MSnID object) collated MSGF output}
 
 \item{level}{(character) Level at which to perform FDR filter. The name of a
 column in \code{psms(msnid)}. Currently, only \code{"peptide"} or \code{"accession"} are
-supported.}
+supported. The added level \code{SiteID} makes sense only for PTM data and
+first requires mapping of the modification site using
+\code{MSnID::map_mod_sites}.}
 
 \item{fdr.max}{(numeric) Maximum acceptable FDR. Default is 0.01 (1\%).}
 
