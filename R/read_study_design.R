@@ -32,7 +32,7 @@ read_study_design <- function(path_to_study_design) {
 
   ## fetch samples.txt
   pathToFile <- list.files(path=path_to_study_design,
-                           pattern="^samples.txt$",
+                           pattern="samples.txt$",
                            full.names=T)
   if(length(pathToFile) == 0) {
     stop("'samples.txt' not found.")
@@ -53,7 +53,7 @@ read_study_design <- function(path_to_study_design) {
 
   ## fetch fractions.txt
   pathToFile <- list.files(path=path_to_study_design,
-                           pattern="^fractions.txt$",
+                           pattern="fractions.txt$",
                            full.names=T)
   if (length(pathToFile) == 0){
     stop("'fractions.txt' not found.")
@@ -72,7 +72,7 @@ read_study_design <- function(path_to_study_design) {
 
   ## fetch references.txt
   pathToFile <- list.files(path=path_to_study_design,
-                           pattern="^references.txt$",
+                           pattern="references.txt$",
                            full.names=T)
   if(length(pathToFile) > 0) {
     references <- readr::read_tsv(pathToFile,
