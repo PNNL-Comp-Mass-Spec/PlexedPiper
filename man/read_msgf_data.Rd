@@ -2,9 +2,13 @@
 % Please edit documentation in R/read_msgf_data.R
 \name{read_msgf_data}
 \alias{read_msgf_data}
-\title{Reading MSGF Results. Generic.}
+\title{Reading MS-GF+ Results. Generic.}
 \usage{
-read_msgf_data(path_to_MSGF_results, suffix = character(0))
+read_msgf_data(
+  path_to_MSGF_results,
+  suffix = character(0),
+  use_mzIdentML = FALSE
+)
 }
 \arguments{
 \item{path_to_MSGF_results}{(character) path to directory with MSGF results
@@ -12,12 +16,15 @@ for all datasets.}
 
 \item{suffix}{(character) optional file suffix. Either \code{"_msgfplus_syn.txt"},
 \code{"_msgfdb_syn.txt"}, or \code{"_syn.txt"}.}
+
+\item{use_mzIdentML}{(logical) whether to read mzIdentML files into \code{psms}
+\code{data.table} slot of the \code{MSnID}.}
 }
 \value{
 (MSnID) MSnID object
 }
 \description{
-Reading MSGF output from a single directory.
+Reading MS-GF+ output from a single directory.
 }
 \examples{
 \dontrun{

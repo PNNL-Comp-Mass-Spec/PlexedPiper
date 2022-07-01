@@ -1,11 +1,13 @@
-#' Reading MSGF Results. Generic.
+#' Reading MS-GF+ Results. Generic.
 #'
-#' Reading MSGF output from a single directory.
+#' Reading MS-GF+ output from a single directory.
 #'
 #' @param path_to_MSGF_results (character) path to directory with MSGF results
 #'   for all datasets.
 #' @param suffix (character) optional file suffix. Either `"_msgfplus_syn.txt"`,
 #'   `"_msgfdb_syn.txt"`, or `"_syn.txt"`.
+#' @param use_mzIdentML (logical) whether to read mzIdentML files into `psms`
+#'   `data.table` slot of the `MSnID`.
 #'
 #' @md
 #'
@@ -24,26 +26,46 @@
 #' head(MSnID::psms(msnid))
 #' }
 
+
 #' @export
-read_msgf_data <- function(path_to_MSGF_results, suffix = character(0)){
+read_msgf_data <- function(path_to_MSGF_results,
+                           suffix = character(0),
+                           use_mzIdentML = FALSE)
+{
+  if (use_mzIdentML) {
+    mzid_files <- list.files(path_to_MSGF_results,
+                             pattern = "mzid",
+                             full.names = TRUE)
 
-   if (identical(suffix, character(0))) {
+    if (length(mzid_files) == 0) {
+      stop("mzid files not found.")
+    }
+
+    # Read mzIdentML files into psms slot
+    # Note: adding a progress bar with llply drastically
+    # increases memory usage and time
+    suppressMessages(
+      msnid <- MSnID::read_mzIDs(MSnID(), mzid_files, backend = "mzR")
+    )
+  } else {
+    if (identical(suffix, character(0))) {
       for (pattern in c("_msgfplus_syn.txt", "_msgfdb_syn.txt", "_syn.txt")) {
-         if (length(list.files(path_to_MSGF_results, pattern)) > 0) {
-            suffix <- pattern
-            break
-         }
+        if (length(list.files(path_to_MSGF_results, pattern)) > 0) {
+          suffix <- pattern
+          break
+        }
       }
-   }
+    }
 
-   if (identical(suffix, character(0)) |
-       (length(list.files(path_to_MSGF_results, suffix)) == 0)) {
+    if (identical(suffix, character(0)) |
+        (length(list.files(path_to_MSGF_results, suffix)) == 0)) {
       stop("MS-GF+ results not found.")
-   }
+    }
 
-   x <- collate_files(path_to_MSGF_results, suffix)
-   msnid <- convert_msgf_output_to_msnid(x)
-   return(msnid)
+    x <- collate_files(path_to_MSGF_results, suffix)
+    msnid <- convert_msgf_output_to_msnid(x)
+  }
+  return(msnid)
 }
 
 
