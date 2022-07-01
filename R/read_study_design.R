@@ -7,6 +7,7 @@
 #'
 #' @param path_to_study_design (character) path to folder containing study
 #'   design files.
+#' @param prefix (character) optional prefix for study design tables.
 #'
 #' @return A list of study design tables, accessible by `$` or `[]`.
 #'
@@ -27,85 +28,66 @@
 
 
 # gets 3 study design files from local directory
-read_study_design <- function(path_to_study_design) {
+read_study_design <- function(path_to_study_design,
+                              prefix = character(0))
+{
+  # Columns that must be present in their respective tables
+  required_cols <- list(
+    "samples" = c("PlexID", "ReporterName", "ReporterAlias", "MeasurementName"),
+    "fractions" = c("PlexID", "Dataset"),
+    "references" = c("PlexID", "Reference")
+  )
 
-
-  ## fetch samples.txt
-  pathToFile <- list.files(path=path_to_study_design,
-                           pattern="^samples.txt$",
-                           full.names=T)
-  if(length(pathToFile) == 0) {
-    stop("'samples.txt' not found.")
-  }
-
-  samples <- readr::read_tsv(pathToFile,
-                             col_types=readr::cols(.default = "c"),
-                             progress=FALSE)
-  required_samples_columns <- c("PlexID",
-                                "ReporterName",
-                                "ReporterAlias",
-                                "MeasurementName")
-  if (!all(required_samples_columns %in% colnames(samples))) {
-    message("\nRequired column(s) not found in the 'samples.txt' file: ",
-            paste(required_samples_columns[!(required_samples_columns %in% colnames(samples))], collapse = ", "))
-    stop("Incorrect column names or missing columns in the 'samples' study design table.")
-  }
-
-  ## fetch fractions.txt
-  pathToFile <- list.files(path=path_to_study_design,
-                           pattern="^fractions.txt$",
-                           full.names=T)
-  if (length(pathToFile) == 0){
-    stop("'fractions.txt' not found.")
-  }
-
-  fractions <- readr::read_tsv(pathToFile,
-                               col_types=readr::cols(.default = "c"),
-                               progress=FALSE)
-  required_fractions_columns <- c("PlexID",
-                                  "Dataset")
-  if (!all(required_fractions_columns %in% colnames(fractions))) {
-    message("\nRequired column(s) not found in the 'fractions.txt' file: ",
-            paste(required_fractions_columns[!(required_fractions_columns %in% colnames(fractions))], collapse = ", "))
-    stop("Incorrect column names or missing columns in the 'fractions' table.")
-  }
-
-  ## fetch references.txt
-  pathToFile <- list.files(path=path_to_study_design,
-                           pattern="^references.txt$",
-                           full.names=T)
-  if(length(pathToFile) > 0) {
-    references <- readr::read_tsv(pathToFile,
-                                  col_types=readr::cols(.default = "c"),
-                                  progress=FALSE)
-    required_references_columns <- c("PlexID",
-                                     "Reference")
-    if (!all(required_references_columns %in% colnames(references))) {
-      message("\nRequired column(s) not found in the 'references.txt' file: ",
-              paste(required_references_columns[!(required_references_columns %in% colnames(references))], collapse = ", "))
-      stop("Incorrect column names or missing columns in the 'references' table.")
+  study_design <- lapply(names(required_cols), function(name_i) {
+    pttrn <- paste0(prefix, name_i, ".txt")
+    pathToFile <- list.files(path = path_to_study_design,
+                             pattern = paste0("^", pttrn, "$"),
+                             full.names = TRUE)
+    if(length(pathToFile) == 0) {
+      if (name_i == "references") {
+        warning(sprintf("'%s' not found. It will be made automatically from `%s`",
+                        pttrn, sub("references", "samples", pttrn)))
+        references <- filter(samples, is.na(MeasurementName)) %>%
+          select(PlexID, QuantBlock, ReporterAlias) %>%
+          rename(Reference = ReporterAlias)
+      } else {
+        stop(sprintf("'%s' not found.", pttrn))
+      }
+    } else if (length(pathToFile) > 1) {
+      stop(sprintf("Multiple %s files discovered. Check prefix."))
     }
-  } else {
-    warning("'references.txt' not found. It will be made automatically from `samples.txt`")
-    references <- filter(samples, is.na(MeasurementName)) %>%
-      select(PlexID, QuantBlock, ReporterAlias) %>%
-      rename(Reference = ReporterAlias)
-  }
+
+    tbl <- readr::read_tsv(pathToFile,
+                           col_types = readr::cols(.default = "c"),
+                           progress = FALSE)
+
+    required_cols_i <- required_cols[[name_i]]
+    col_in_tbl <- required_cols_i %in% colnames(tbl)
+    if (!all(col_in_tbl)) {
+      message(sprintf("\nRequired column(s) not found in the '%s' file: ", pttrn),
+              paste(required_cols_i[!col_in_tbl], collapse = ", "))
+      stop(sprintf("Incorrect column names or missing columns in the '%s' study design table.", name_i))
+    }
+
+    return(tbl)
+  })
+
+  names(study_design) <- names(required_cols)
+
 
   # Check for duplicates
-  if (any(duplicated(fractions$Dataset))) {
-    stop("Duplicate datasets in 'fractions.txt'")
+  if (any(duplicated(study_design$fractions$Dataset))) {
+    stop(sprintf("Duplicate datasets in '%sfractions.txt'"))
   }
-  if (any(duplicated(samples$MeasurementName[!is.na(samples$MeasurementName)]))) {
-    stop("Duplicate sample names in 'samples.txt'")
+  if (any(duplicated(study_design$samples$MeasurementName[
+    !is.na(study_design$samples$MeasurementName)]))) {
+    stop("Duplicate sample names in '%ssamples.txt'")
   }
-  if (!setequal(fractions$PlexID, samples$PlexID)) {
-    stop("Plex IDs in 'fractions.txt' and 'samples.txt' do not match.")
+  if (!setequal(study_design$fractions$PlexID,
+                study_design$samples$PlexID)) {
+    stop(sprintf("Plex IDs in '%sfractions.txt' and '%ssamples.txt' do not match.",
+         prefix, prefix))
   }
-
-  study_design <- list(samples = samples,
-                       fractions = fractions,
-                       references = references)
 
   return(study_design)
 }

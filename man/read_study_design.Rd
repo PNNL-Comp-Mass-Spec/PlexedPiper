@@ -4,11 +4,13 @@
 \alias{read_study_design}
 \title{Utilities for reading study design files.}
 \usage{
-read_study_design(path_to_study_design)
+read_study_design(path_to_study_design, prefix = character(0))
 }
 \arguments{
 \item{path_to_study_design}{(character) path to folder containing study
 design files.}
+
+\item{prefix}{(character) optional prefix for study design tables.}
 }
 \value{
 A list of study design tables, accessible by \code{$} or \verb{[]}.
