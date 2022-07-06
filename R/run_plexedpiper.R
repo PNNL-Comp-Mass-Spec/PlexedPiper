@@ -12,6 +12,7 @@
 #'   phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics
 #' @param study_design_folder (character) Folder containing the three study
 #'   design tables: fractions.txt, samples.txt, and references.txt
+#' @param prefix (character) optional prefix for study design tables.
 #' @param species (character) Scientific name of species (e.g. "Rattus
 #'   norvegicus", "Homo sapiens", etc.)
 #' @param annotation (character) Source for annotations: either `RefSeq` or
@@ -67,12 +68,15 @@
 #'                            verbose = TRUE)
 #' }
 #' @export
+
+
 run_plexedpiper <- function(msgf_output_folder,
                             fasta_file,
                             masic_output_folder,
                             ascore_output_folder = NULL,
                             proteomics,
                             study_design_folder,
+                            prefix = character(0),
                             species,
                             annotation,
                             file_prefix = NULL,
@@ -106,7 +110,7 @@ run_plexedpiper <- function(msgf_output_folder,
   # Data loading
   message("- Fetch study design tables")
 
-  study_design <- read_study_design(study_design_folder)
+  study_design <- read_study_design(study_design_folder, prefix = prefix)
   msnid <- read_msgf_data(msgf_output_folder)
   if(!is.null(ascore_output_folder)) ascore <- read_AScore_results(ascore_output_folder)
   masic_data <- read_masic_data(masic_output_folder,

@@ -11,6 +11,7 @@ run_plexedpiper(
   ascore_output_folder = NULL,
   proteomics,
   study_design_folder,
+  prefix = character(0),
   species,
   annotation,
   file_prefix = NULL,
@@ -38,6 +39,8 @@ phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics}
 
 \item{study_design_folder}{(character) Folder containing the three study
 design tables: fractions.txt, samples.txt, and references.txt}
+
+\item{prefix}{(character) optional prefix for study design tables.}
 
 \item{species}{(character) Scientific name of species (e.g. "Rattus
 norvegicus", "Homo sapiens", etc.)}
