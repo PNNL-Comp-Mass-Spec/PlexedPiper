@@ -78,20 +78,43 @@ create_crosstab <- function(msnid,
                             samples,
                             references)
 {
+  # Common datasets
+  cd <- sort(intersect(msnid$Dataset, reporter_intensities$Dataset))
 
-   # merges MS/MS IDs with reporter intensities
-   quant_data <- link_msms_and_reporter_intensities(msnid,
-                                                    reporter_intensities,
-                                                    aggregation_level)
-   # aggregates reporter intensities to a given level
-   quant_data <- aggregate_reporters(quant_data, fractions, aggregation_level)
-   # taking ratios of reporter ion intensities to whatever the reference is
-   out <- converting_to_relative_to_reference(quant_data,
-                                              samples,
-                                              references)
-   return(out)
+  # Datasets are in msnid, reporter_intensities, and fractions
+  if (!identical(sort(fractions$Dataset), cd)) {
+    warning(paste("All datasets must be present in msnid,",
+                  "reporter_intensities, and fractions."))
+    if (length(cd) > 0) {
+      warning(sprintf("Subsetting to %g common datasets.", length(cd)))
+      # subset to common datasets
+      msnid <- apply_filter(msnid, "Dataset %in% cd")
+      reporter_intensities <- reporter_intensities[
+        reporter_intensities$Dataset %in% cd, ]
+      fractions <- fractions[fractions$Dataset %in% cd, ]
+    } else {
+      stop("There are no common datasets. Check fractions table.")
+    }
+  }
+
+  # Check that all MeasurementName are unique (ignore NA)
+  if (any(duplicated(samples$MeasurementName, incomparables = NA))) {
+    stop("There are duplicate MeasurementName in samples.")
+  }
+
+
+  # merges MS/MS IDs with reporter intensities
+  quant_data <- link_msms_and_reporter_intensities(msnid,
+                                                   reporter_intensities,
+                                                   aggregation_level)
+  # aggregates reporter intensities to a given level
+  quant_data <- aggregate_reporters(quant_data, fractions, aggregation_level)
+  # taking ratios of reporter ion intensities to whatever the reference is
+  out <- converting_to_relative_to_reference(quant_data,
+                                             samples,
+                                             references)
+  return(out)
 }
-
 
 
 
@@ -101,30 +124,30 @@ link_msms_and_reporter_intensities <- function(msnid,
                                                aggregation_level)
 {
 
-   ## Check input
-   msms_cols <- c("Dataset", "Scan", aggregation_level)
-   stopifnot(all(msms_cols %in% names(msnid)))
+  ## Check input
+  msms_cols <- c("Dataset", "Scan", aggregation_level)
+  stopifnot(all(msms_cols %in% names(msnid)))
 
-   # Rename any columns that start with "Scan" to just "Scan"
-   colnames(reporter_intensities)[
-      grepl("^Scan", colnames(reporter_intensities))
-   ] <- "Scan"
-   masic_cols <- c("Dataset", "Scan")
-   stopifnot(all(masic_cols %in% colnames(reporter_intensities)))
-   other_columns <- setdiff(colnames(reporter_intensities), masic_cols)
-   stopifnot(all(grepl("^Ion.*\\d$", other_columns)))
+  # Rename any columns that start with "Scan" to just "Scan"
+  colnames(reporter_intensities)[
+    grepl("^Scan", colnames(reporter_intensities))
+  ] <- "Scan"
+  masic_cols <- c("Dataset", "Scan")
+  stopifnot(all(masic_cols %in% colnames(reporter_intensities)))
+  other_columns <- setdiff(colnames(reporter_intensities), masic_cols)
+  stopifnot(all(grepl("^Ion.*\\d$", other_columns)))
 
-   ## prepare MS/MS data
-   msms <- unique(msnid@psms[, msms_cols, with = FALSE])
-   setkey(msms, Dataset, Scan)
+  ## prepare MS/MS data
+  msms <- unique(msnid@psms[, msms_cols, with = FALSE])
+  setkey(msms, Dataset, Scan)
 
-   ## prepare reporter intensities data
-   setDT(reporter_intensities)
+  ## prepare reporter intensities data
+  setDT(reporter_intensities)
 
-   ## main link
-   quant_data <- merge(msms, reporter_intensities)
+  ## main link
+  quant_data <- merge(msms, reporter_intensities)
 
-   return(quant_data)
+  return(quant_data)
 }
 
 utils::globalVariables(c("Scan"))
@@ -133,24 +156,24 @@ utils::globalVariables(c("Scan"))
 # no export
 aggregate_reporters <- function(quant_data, fractions, aggregation_level)
 {
-   aggregation_level <- c("PlexID", aggregation_level)
+  aggregation_level <- c("PlexID", aggregation_level)
 
-   setDT(fractions, key = "Dataset")
-   quant_data <- merge(quant_data, fractions)
+  setDT(fractions, key = "Dataset")
+  quant_data <- merge(quant_data, fractions)
 
-   setkeyv(quant_data, aggregation_level)
-   quant_data <- quant_data[, lapply(.SD, sum, na.rm=TRUE),
-                            by = aggregation_level,
-                            .SDcols = grep("^Ion_1.*\\d$",
-                                           colnames(quant_data), value = TRUE)]
+  setkeyv(quant_data, aggregation_level)
+  quant_data <- quant_data[, lapply(.SD, sum, na.rm=TRUE),
+                           by = aggregation_level,
+                           .SDcols = grep("^Ion_1.*\\d$",
+                                          colnames(quant_data), value = TRUE)]
 
-   #
-   specie_cols <- setdiff(aggregation_level, "PlexID")
-   quant_data[, Specie := do.call(paste, c(.SD, sep = "@")),
-              .SDcols = specie_cols]
-   quant_data[, (specie_cols) := NULL]
+  #
+  specie_cols <- setdiff(aggregation_level, "PlexID")
+  quant_data[, Specie := do.call(paste, c(.SD, sep = "@")),
+             .SDcols = specie_cols]
+  quant_data[, (specie_cols) := NULL]
 
-   return(quant_data)
+  return(quant_data)
 }
 
 # no export
@@ -159,115 +182,115 @@ converting_to_relative_to_reference <- function(quant_data,
                                                 references)
 {
 
-   # transforming from wide to long form
-   quant_data <- melt(quant_data,
-                      id.vars=c("PlexID","Specie"),
-                      measure.vars=grep("Ion_", colnames(quant_data), value=TRUE),
-                      variable.name="ReporterIon",
-                      value.name="Abundance")
-   setkey(quant_data, PlexID, ReporterIon)
+  # transforming from wide to long form
+  quant_data <- melt(quant_data,
+                     id.vars=c("PlexID","Specie"),
+                     measure.vars=grep("Ion_", colnames(quant_data), value=TRUE),
+                     variable.name="ReporterIon",
+                     value.name="Abundance")
+  setkey(quant_data, PlexID, ReporterIon)
 
-   # add QuantBlock columns if missing
-   if (!("QuantBlock" %in% names(samples))) {
-      samples$QuantBlock <- 1
-   }
-   if (!("QuantBlock" %in% names(references))) {
-      references$QuantBlock <- 1
-   }
+  # add QuantBlock columns if missing
+  if (!("QuantBlock" %in% names(samples))) {
+    samples$QuantBlock <- 1
+  }
+  if (!("QuantBlock" %in% names(references))) {
+    references$QuantBlock <- 1
+  }
 
-   # preparing sample info
-   setDT(samples)
+  # preparing sample info
+  setDT(samples)
 
-   reporter_ions <- unique(quant_data$ReporterIon)
-   # loop through list of reporter ion converter tables, find which table
-   # matches all ions
-   # Set reporter_converter to prevent "no visible binding" note
-   reporter_converter <- PlexedPiper::reporter_converter
-   for (i in seq_along(reporter_converter)) {
-      if (setequal(as.character(reporter_ions),
-                   reporter_converter[[i]]$ReporterIon)) {
-         converter <- data.table(reporter_converter[[i]])
-         break
-      }
-   }
+  reporter_ions <- unique(quant_data$ReporterIon)
+  # loop through list of reporter ion converter tables, find which table
+  # matches all ions
+  # Set reporter_converter to prevent "no visible binding" note
+  reporter_converter <- PlexedPiper::reporter_converter
+  for (i in seq_along(reporter_converter)) {
+    if (setequal(as.character(reporter_ions),
+                 reporter_converter[[i]]$ReporterIon)) {
+      converter <- data.table(reporter_converter[[i]])
+      break
+    }
+  }
 
-   if (!exists("converter")) {
-      stop("No reporter ion converter tables match the reporter ions in MASIC data")
-   }
+  if (!exists("converter")) {
+    stop("No reporter ion converter tables match the reporter ions in MASIC data")
+  }
 
-   samples <- merge(samples, converter)
-   setkey(samples, PlexID, ReporterIon)
+  samples <- merge(samples, converter)
+  setkey(samples, PlexID, ReporterIon)
 
-   # merging reporter intensities with sample info
-   quant_data <- merge(quant_data, samples)
-   setkey(quant_data, PlexID, QuantBlock)
+  # merging reporter intensities with sample info
+  quant_data <- merge(quant_data, samples)
+  setkey(quant_data, PlexID, QuantBlock)
 
-   setDT(references)
-   out <- list()
-   #~~~
-   for(i in seq_len(nrow(references))){
+  setDT(references)
+  out <- list()
+  #~~~
+  for(i in seq_len(nrow(references))){
 
-      # unique PlexID/QuantBlock combo
-      ref_i <- data.table(references[i,])
-      setkey(ref_i, PlexID, QuantBlock)
+    # unique PlexID/QuantBlock combo
+    ref_i <- data.table(references[i,])
+    setkey(ref_i, PlexID, QuantBlock)
 
-      # subset a piece that is unique to that reference
-      quant_data_i <- quant_data[ref_i]
+    # subset a piece that is unique to that reference
+    quant_data_i <- quant_data[ref_i]
 
-      # now make wide by ReporterAlias
-      quant_data_i_w <- dcast(quant_data_i,
-                              Specie ~ ReporterAlias,
-                              value.var='Abundance')
-      species <- quant_data_i_w[,"Specie"]
-      quant_data_i_w <- quant_data_i_w[,!"Specie"]
+    # now make wide by ReporterAlias
+    quant_data_i_w <- dcast(quant_data_i,
+                            Specie ~ ReporterAlias,
+                            value.var='Abundance')
+    species <- quant_data_i_w[,"Specie"]
+    quant_data_i_w <- quant_data_i_w[,!"Specie"]
 
-      # compute reference values for this particular PlexID/QuantBlock combo
-      # TODO. Maybe there is a more elegant, more data.table-esque way.
-      if (is.factor(ref_i$Reference)) {
-         ref_i$Reference <- as.character(ref_i$Reference)
-      }
+    # compute reference values for this particular PlexID/QuantBlock combo
+    # TODO. Maybe there is a more elegant, more data.table-esque way.
+    if (is.factor(ref_i$Reference)) {
+      ref_i$Reference <- as.character(ref_i$Reference)
+    }
 
-      ref_values <- with(quant_data_i_w, eval(parse(text=ref_i$Reference)))
+    ref_values <- with(quant_data_i_w, eval(parse(text=ref_i$Reference)))
 
 
-      # take the ratios over the reference
-      quant_data_i_w <- quant_data_i_w/ref_values
+    # take the ratios over the reference
+    quant_data_i_w <- quant_data_i_w/ref_values
 
-      # switching from ReporterAlias to MeasurementName
-      quant_data_i_w <- data.table(species, quant_data_i_w)
-      quant_data_i_l <- melt(quant_data_i_w, id.vars="Specie",
-                             variable.name="ReporterAlias",
-                             value.name="Ratio")
+    # switching from ReporterAlias to MeasurementName
+    quant_data_i_w <- data.table(species, quant_data_i_w)
+    quant_data_i_l <- melt(quant_data_i_w, id.vars="Specie",
+                           variable.name="ReporterAlias",
+                           value.name="Ratio")
 
-      setkey(samples, PlexID, QuantBlock)
-      sample_naming <- samples[ref_i
-      ][, list(ReporterAlias, MeasurementName)
-      ][!is.na(MeasurementName)]
+    setkey(samples, PlexID, QuantBlock)
+    sample_naming <- samples[ref_i
+    ][, list(ReporterAlias, MeasurementName)
+    ][!is.na(MeasurementName)]
 
-      # converting sample names
-      setkey(quant_data_i_l, ReporterAlias)
-      setkey(sample_naming, ReporterAlias)
-      quant_data_i_l <- merge(quant_data_i_l, sample_naming)
-      quant_data_i_l[,ReporterAlias := NULL]
-      out <- c(out, list(quant_data_i_l))
-   }
-   #~~~
-   out <- rbindlist(out)
-   out <- dcast(out, Specie ~ MeasurementName, value.var="Ratio")
-   species <- out[,Specie]
-   out <- as.matrix(out[,!"Specie"])
-   rownames(out) <- species
+    # converting sample names
+    setkey(quant_data_i_l, ReporterAlias)
+    setkey(sample_naming, ReporterAlias)
+    quant_data_i_l <- merge(quant_data_i_l, sample_naming)
+    quant_data_i_l[,ReporterAlias := NULL]
+    out <- c(out, list(quant_data_i_l))
+  }
+  #~~~
+  out <- rbindlist(out)
+  out <- dcast(out, Specie ~ MeasurementName, value.var="Ratio")
+  species <- out[,Specie]
+  out <- as.matrix(out[,!"Specie"])
+  rownames(out) <- species
 
-   # Inf, Nan, and 0 values turn into NA
-   out[!is.finite(out) | out == 0] <- NA
+  # Inf, Nan, and 0 values turn into NA
+  out[!is.finite(out) | out == 0] <- NA
 
-   # remove rows with all NA
-   out <- out[!apply(is.na(out),1,all),]
+  # remove rows with all NA
+  out <- out[!apply(is.na(out),1,all),]
 
-   # log2-transform
-   out <- log2(out)
-   return(out)
+  # log2-transform
+  out <- log2(out)
+  return(out)
 }
 
-utils::globalVariables(c("ReporterIon"))
+utils::globalVariables(c("ReporterIon", "samples"))
 
