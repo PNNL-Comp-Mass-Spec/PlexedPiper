@@ -87,14 +87,18 @@ run_plexedpiper <- function(msgf_output_folder,
                             output_folder = NULL,
                             save_env = FALSE,
                             return_results = FALSE,
-                            verbose = TRUE) {
+                            verbose = TRUE)
+{
+  annotation <- toupper(annotation)
+  annotation <- match.arg(annotation,
+                          choices = c("REFSEQ", "UNIPROT", "GENCODE"))
 
   if( is.null(write_results_to_file) & is.null(return_results) ){
     stop("\nProvide either <write_results_to_file = TRUE> or <return_results = TRUE> or both. Both cannot be FALSE.")
   }
 
   if (verbose) {
-    message("Running PlexedPiper (the MSGF+ pipeline wrapper), with the following parameters:")
+    message("Running PlexedPiper (the MS-GF+ pipeline wrapper) with the following parameters:")
     message("- Proteomics experiment:\"", proteomics, "\"")
     message("- Species: \"", species, "\"")
     message("- Annotation: \"", annotation, "\"")
@@ -112,21 +116,29 @@ run_plexedpiper <- function(msgf_output_folder,
 
   study_design <- read_study_design(study_design_folder, prefix = prefix)
   msnid <- read_msgf_data(msgf_output_folder)
-  if(!is.null(ascore_output_folder)) ascore <- read_AScore_results(ascore_output_folder)
+
+  if (!is.null(ascore_output_folder)) {
+    ascore <- read_AScore_results(ascore_output_folder)
+  }
   masic_data <- read_masic_data(masic_output_folder,
                                 interference_score = TRUE)
 
   fst <- Biostrings::readAAStringSet(fasta_file)
-  names(fst) <- sub("^(\\S*)\\s.*", "\\1", names(fst))
+  names(fst) <- sub(" .*", "", names(fst)) # extract first word
 
-  if (verbose) message("- Filtering MS-GF+ results.")
+  if (annotation == "GENCODE") {
+    msnid$accession <- sub("([^\\|]+).+", "\\1", msnid$accession)
+    names(fst) <- sub("([^\\|]+).+", "\\1", names(fst))
+  }
+
+  if (verbose) {message("- Filtering MS-GF+ results.")}
   if (proteomics == "pr") {
-    if (verbose) message("   + Correct for isotope selection error")
+    if (verbose) {message("   + Correct for isotope selection error")}
     msnid <- correct_peak_selection(msnid)
   }
 
   if (proteomics != "pr") {
-    if (verbose) message("   + Select best PTM location by AScore")
+    if (verbose) {message("   + Select best PTM location by AScore")}
     msnid <- best_PTM_location_by_ascore(msnid, ascore)
 
     if (verbose) message("   + Apply PTM filter")
@@ -135,36 +147,37 @@ run_plexedpiper <- function(msgf_output_folder,
     } else if (proteomics == "ac") {
       reg.expr <- "grepl(\"#\", peptide)"
     } else if (proteomics == "ub") {
-      psms(msnid) <- psms(msnid) %>% mutate(peptide = gsub("@", "#", peptide))
+      msnid$peptide <- gsub("@", "#", msnid$peptide)
       reg.expr <- "grepl(\"#\", peptide)"
     }
     msnid <- apply_filter(msnid, reg.expr)
   }
 
-  if(verbose) message("   + Peptide-level FDR filter")
+  if (verbose) {message("   + Peptide-level FDR filter")}
   msnid <- filter_msgf_data(msnid, level = "peptide", fdr.max = 0.01)
 
   if (proteomics == "pr") {
-    if (verbose) message("   + Protein-level FDR filter")
+    if (verbose) {message("   + Protein-level FDR filter")}
     msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA = fasta_file)
-
     msnid <- filter_msgf_data(msnid, level = "accession", fdr.max = 0.01)
   }
 
-  if(verbose) message("   + Remove decoy sequences")
+  if(verbose) {message("   + Remove decoy sequences")}
   msnid <- apply_filter(msnid, "!isDecoy")
 
-  if (verbose) message("   + Concatenating redundant RefSeq matches")
+  if (verbose) {message("   + Concatenating redundant RefSeq matches")}
   msnid <- assess_redundant_protein_matches(msnid, collapse = ",")
 
-  if (verbose) message("   + Assessing non-inferable proteins")
+  if (verbose) {message("   + Assessing non-inferable proteins")}
   msnid <- assess_noninferable_proteins(msnid, collapse = ",")
 
-  if(verbose) message("   + Inference of parsimonius set")
+  if (verbose) {message("   + Inference of parsimonius set")}
   if (proteomics == "pr") {
     prior <- character(0)
   } else if (is.null(global_results)) {
-    if(verbose) message("     > Reference global proteomics dataset NOT provided")
+    if (verbose) {
+      message("     > Reference global proteomics dataset NOT provided")
+    }
     prior <- character(0)
   } else {
     global_ratios <- read.table(global_results, header=TRUE, sep="\t")
@@ -177,16 +190,16 @@ run_plexedpiper <- function(msgf_output_folder,
                                          refine_prior = refine_prior)
 
   if (proteomics == "pr") {
-    if (verbose) message("   + Compute protein coverage")
+    if (verbose) {message("   + Compute protein coverage")}
     msnid <- compute_accession_coverage(msnid, fst)
   }
 
   if (proteomics != "pr") {
-    if(verbose) message("   + Mapping sites to protein sequence")
+    if(verbose) {message("   + Mapping sites to protein sequence")}
     if (proteomics == "ph") {
-      mod_char = "*"
+      mod_char <- "*"
     } else if (proteomics %in% c("ac", "ub")) {
-      mod_char = "#"
+      mod_char <- "#"
     } else {
       stop("Proteomics variable not supported.")
     }
@@ -198,11 +211,11 @@ run_plexedpiper <- function(msgf_output_folder,
                            mod_char        = mod_char,
                            site_delimiter  = "lower")
 
-    if(verbose) message("   + Map flanking sequences")
+    if(verbose) {message("   + Map flanking sequences")}
     msnid <- extract_sequence_window(msnid, fasta = fst)
   }
 
-  if (verbose) message("- Filtering MASIC results.")
+  if (verbose) {message("- Filtering MASIC results.")}
   masic_data <- filter_masic_data(masic_data, 0.5, 0)
 
   args <- list(msnid      = msnid,
@@ -211,9 +224,10 @@ run_plexedpiper <- function(msgf_output_folder,
                samples    = study_design$samples,
                references = study_design$references,
                annotation = annotation,
-               org_name   = species)
+               org_name   = species,
+               fasta_file = fasta_file)
 
-  if (verbose) message("- Making results tables.")
+  if (verbose) {message("- Making results tables.")}
   if (proteomics == "pr") {
     suppressMessages(rii_peptide <- do.call(make_rii_peptide_gl, args))
     suppressMessages(results_ratio <- do.call(make_results_ratio_gl, args))
@@ -222,48 +236,53 @@ run_plexedpiper <- function(msgf_output_folder,
     suppressMessages(results_ratio <- do.call(make_results_ratio_ph, args))
   }
 
-  if (verbose) message("- Saving results.")
+  if (verbose) {message("- Saving results.")}
 
-  if(is.null(output_folder)){
+  if (is.null(output_folder)) {
     output_folder <- getwd()
   }
 
-  if(write_results_to_file){
+  if (write_results_to_file) {
     if (!is.null(output_folder)) {
       if (!dir.exists(file.path(output_folder))) {
         dir.create(file.path(output_folder), recursive = TRUE)
       }
 
-      filename = paste0(file_prefix, "-results_RII-peptide.txt")
+      filename <- paste0(file_prefix, "-results_RII-peptide.txt")
       write.table(rii_peptide,
                   file      = file.path(output_folder, filename),
                   sep       = "\t",
                   row.names = FALSE,
                   quote     = FALSE)
-      if(verbose) message("- RII file save to ",
-                          file.path(output_folder, filename))
+      if(verbose) {
+        message("- RII file save to ", file.path(output_folder, filename))
+      }
 
-      filename = paste0(file_prefix, "-results_ratio.txt")
+      filename <- paste0(file_prefix, "-results_ratio.txt")
       write.table(results_ratio,
                   file      = file.path(output_folder, filename),
                   sep       = "\t",
                   row.names = FALSE,
                   quote     = FALSE)
-      if(verbose) message("- RATIO file save to ",
-                          file.path(output_folder, filename))
+      if(verbose) {
+        message("- RATIO file save to ", file.path(output_folder, filename))
+      }
     }
   }
   if (save_env) {
-    fileenv = paste0(file_prefix, "-env.RData")
+    fileenv <- paste0(file_prefix, "-env.RData")
     save.image(file = file.path(output_folder, fileenv))
-    if(verbose) message("- R environment saved to ",
-                        file.path(output_folder, fileenv))
+    if(verbose) {
+      message("- R environment saved to ", file.path(output_folder, fileenv))
+    }
   }
 
-  if (verbose) message("Done!")
+  if (verbose) {message("Done!")}
 
-  if(return_results){
-    return(list(rii_peptide = rii_peptide, results_ratio = results_ratio))
+  if (return_results) {
+    out <- list(rii_peptide = rii_peptide,
+                results_ratio = results_ratio)
+    return(out)
   }
 }
 
