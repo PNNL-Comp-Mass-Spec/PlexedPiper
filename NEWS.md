@@ -1,3 +1,14 @@
+# PlexedPiper 0.3.7 (2022-10-22)
+
+* Updated MoTrPAC BIC functions to extract information from GENCODE FASTA headers and include them as columns in results tables.
+* Added checks for `create_crosstab` input.
+
+# PlexedPiper 0.3.6 (2022-07-01)
+
+* Added use_mzIdentML argument to read_msgf_data to read mzid files from a local folder.
+* Added prefix argument to read_study_design and run_plexedpiper.
+* Expanded the functionality of filter_msgf_data to allow for filtering at the SiteID level. This performs the same optimization procedure as when filtering at the peptide level. Also added the filter_msgf_data_SiteID_level wrapper.
+
 # PlexedPiper 0.3.5 (2022-05-04)
 
 * Added `unique_only` and `refine_prior` arguments to `run_plexedpiper`. 
