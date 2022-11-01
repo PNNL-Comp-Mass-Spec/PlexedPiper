@@ -2,6 +2,7 @@
 
 * Updated MoTrPAC BIC functions to extract information from GENCODE FASTA headers and include them as columns in results tables.
 * Added checks for `create_crosstab` input.
+* Updated `run_plexedpiper` to accept multiple folder paths. Now capable of integrating multiple datasets, such as MoTrPAC PASS1A/1C.
 
 # PlexedPiper 0.3.6 (2022-07-01)
 

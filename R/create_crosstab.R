@@ -27,6 +27,7 @@
 #'
 #' @importFrom data.table data.table setkey setkeyv melt dcast rbindlist .SD :=
 #'   setnames setDT
+#' @importFrom purrr reduce
 #'
 #' @export create_crosstab
 #'
@@ -98,10 +99,13 @@ create_crosstab <- function(msnid,
   }
 
   # Check that all MeasurementName are unique (ignore NA)
-  if (any(duplicated(samples$MeasurementName, incomparables = NA))) {
+  if (anyDuplicated(samples$MeasurementName, incomparables = NA) != 0) {
     stop("There are duplicate MeasurementName in samples.")
   }
 
+  # Only keep common Plexes
+  # plex_list <- lapply(list(samples, fractions, references))
+  # purrr::reduce(list())
 
   # merges MS/MS IDs with reporter intensities
   quant_data <- link_msms_and_reporter_intensities(msnid,
@@ -109,6 +113,19 @@ create_crosstab <- function(msnid,
                                                    aggregation_level)
   # aggregates reporter intensities to a given level
   quant_data <- aggregate_reporters(quant_data, fractions, aggregation_level)
+
+  # Check that all PlexID in common
+  all_plex <- list(samples$PlexID, references$PlexID, quant_data$PlexID)
+  all_plex <- lapply(all_plex, unique)
+  common_plex <- purrr::reduce(all_plex, intersect)
+
+  if (!identical(common_plex, unique(unlist(all_plex)))) {
+    warning(paste("Not all PlexID are present in reporter_intensities",
+                  "and study design tables. Subsetting to PlexID in common."))
+    samples <- samples[samples$PlexID %in% common_plex, ]
+    references <- references[references$PlexID %in% common_plex, ]
+  }
+
   # taking ratios of reporter ion intensities to whatever the reference is
   out <- converting_to_relative_to_reference(quant_data,
                                              samples,
@@ -138,7 +155,9 @@ link_msms_and_reporter_intensities <- function(msnid,
   stopifnot(all(grepl("^Ion.*\\d$", other_columns)))
 
   ## prepare MS/MS data
-  msms <- unique(msnid@psms[, msms_cols, with = FALSE])
+  msms <- psms(msnid)
+  setDT(msms)
+  msms <- unique(msms[, msms_cols, with = FALSE])
   setkey(msms, Dataset, Scan)
 
   ## prepare reporter intensities data

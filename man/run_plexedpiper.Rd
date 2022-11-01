@@ -26,27 +26,29 @@ run_plexedpiper(
 )
 }
 \arguments{
-\item{msgf_output_folder}{(character) Path to MSGF+ results folder}
+\item{msgf_output_folder}{(character) Path to MS-GF+ results folder(s).}
 
-\item{fasta_file}{(character) Path to FASTA file}
+\item{fasta_file}{(character) Path to FASTA file. If multiple MS-GF+ results
+folders are provided, all should be searched against the same
+protein database.}
 
-\item{masic_output_folder}{(character) MASIC results folder}
+\item{masic_output_folder}{(character) MASIC results folder(s).}
 
-\item{ascore_output_folder}{(character) AScore results folder}
+\item{ascore_output_folder}{(character) AScore results folder(s).}
 
 \item{proteomics}{(character) Either "pr" - proteomics, "ph" -
-phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics}
+phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics.}
 
 \item{study_design_folder}{(character) Folder containing the three study
-design tables: fractions.txt, samples.txt, and references.txt}
+design tables: fractions.txt, samples.txt, and references.txt.}
 
 \item{prefix}{(character) optional prefix for study design tables.}
 
 \item{species}{(character) Scientific name of species (e.g. "Rattus
-norvegicus", "Homo sapiens", etc.)}
+norvegicus", "Homo sapiens", etc.).}
 
-\item{annotation}{(character) Source for annotations: either \code{RefSeq} or
-\code{UniProt} (case insensitive).}
+\item{annotation}{(character) Source for annotations: either \code{RefSeq},
+\code{UniProt}, or \code{Gencode} (case insensitive).}
 
 \item{file_prefix}{(character) Prefix for the file name outputs.}
 

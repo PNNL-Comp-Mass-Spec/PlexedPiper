@@ -42,7 +42,6 @@
 #' @importFrom dplyr select inner_join left_join mutate %>% case_when rename
 #'   group_by summarize arrange
 #' @importFrom tibble rownames_to_column
-#' @importFrom IRanges IRanges IRangesList reduce
 #'
 #' @name motrpac_bic_output
 #'
@@ -120,9 +119,7 @@ make_rii_peptide_gl <- function(msnid,
   ## Make RII study design tables
   if (any(duplicated(samples$ReporterAlias))) {
     samples_rii <- samples %>%
-      mutate(MeasurementName = ifelse(is.na(MeasurementName),
-                                      paste(ReporterAlias, PlexID, sep="_"),
-                                      ReporterAlias))
+      mutate(MeasurementName = paste(ReporterAlias, PlexID, sep="_"))
   } else {
     samples_rii <- samples %>%
       mutate(MeasurementName = ReporterAlias)
@@ -338,9 +335,7 @@ make_rii_peptide_ph <- function(msnid,
   ## Make RII study design tables
   if (any(duplicated(samples$ReporterAlias))) {
     samples_rii <- samples %>%
-      mutate(MeasurementName = ifelse(is.na(MeasurementName),
-                                      paste(ReporterAlias, PlexID, sep="_"),
-                                      ReporterAlias))
+      mutate(MeasurementName = paste(ReporterAlias, PlexID, sep="_"))
   } else {
     samples_rii <- samples %>%
       mutate(MeasurementName = ReporterAlias)

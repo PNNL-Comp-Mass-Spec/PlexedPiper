@@ -4,19 +4,21 @@
 #'   necessary to go from MS-GF+ and MASIC data to Reporter Ion Intensity (RII)
 #'   and Ratio Results tables used by the MoTrPAC Bioinformatics Center (BIC).
 #'
-#' @param msgf_output_folder (character) Path to MSGF+ results folder
-#' @param fasta_file (character) Path to FASTA file
-#' @param masic_output_folder (character) MASIC results folder
-#' @param ascore_output_folder (character) AScore results folder
+#' @param msgf_output_folder (character) Path to MS-GF+ results folder(s).
+#' @param fasta_file (character) Path to FASTA file. If multiple MS-GF+ results
+#'   folders are provided, all should be searched against the same
+#'   protein database.
+#' @param masic_output_folder (character) MASIC results folder(s).
+#' @param ascore_output_folder (character) AScore results folder(s).
 #' @param proteomics (character) Either "pr" - proteomics, "ph" -
-#'   phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics
+#'   phosphoproteomics, "ub" - ubiquitinomics, or "ac" - acetylomics.
 #' @param study_design_folder (character) Folder containing the three study
-#'   design tables: fractions.txt, samples.txt, and references.txt
+#'   design tables: fractions.txt, samples.txt, and references.txt.
 #' @param prefix (character) optional prefix for study design tables.
 #' @param species (character) Scientific name of species (e.g. "Rattus
-#'   norvegicus", "Homo sapiens", etc.)
-#' @param annotation (character) Source for annotations: either `RefSeq` or
-#'   `UniProt` (case insensitive).
+#'   norvegicus", "Homo sapiens", etc.).
+#' @param annotation (character) Source for annotations: either `RefSeq`,
+#'   `UniProt`, or `Gencode` (case insensitive).
 #' @param global_results (character) Only for PTM experiments. Ratio results
 #'   from a global protein abundance experiment. If provided, prioritized
 #'   inference will be performed. Otherwise, parsimonious inference is performed
@@ -47,8 +49,12 @@
 #'
 #' @importFrom Biostrings readAAStringSet
 #' @importFrom utils read.table write.table
-#' @importFrom MSnID compute_accession_coverage correct_peak_selection
-#'   extract_sequence_window infer_parsimonious_accessions map_mod_sites
+#' @importFrom MSnID psms MSnID compute_accession_coverage
+#'   correct_peak_selection extract_sequence_window
+#'   infer_parsimonious_accessions map_mod_sites
+#' @importFrom dplyr %>%
+#' @importFrom data.table rbindlist
+#' @importFrom purrr reduce
 #'
 #' @examples \dontrun{
 #' results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
@@ -99,7 +105,7 @@ run_plexedpiper <- function(msgf_output_folder,
 
   if (verbose) {
     message("Running PlexedPiper (the MS-GF+ pipeline wrapper) with the following parameters:")
-    message("- Proteomics experiment:\"", proteomics, "\"")
+    message("- Proteomics experiment: \"", proteomics, "\"")
     message("- Species: \"", species, "\"")
     message("- Annotation: \"", annotation, "\"")
   }
@@ -115,13 +121,29 @@ run_plexedpiper <- function(msgf_output_folder,
   message("- Fetch study design tables")
 
   study_design <- read_study_design(study_design_folder, prefix = prefix)
-  msnid <- read_msgf_data(msgf_output_folder)
+  # msnid <- read_msgf_data(msgf_output_folder)
+
+  suppressMessages(msnid <- MSnID())
+
+  psms(msnid) <- lapply(msgf_output_folder, function(msgf_folder_i) {
+    out <- read_msgf_data(msgf_folder_i)
+    out <- psms(out)
+    return(out)
+  }) %>%
+    rbindlist(fill = TRUE)
 
   if (!is.null(ascore_output_folder)) {
-    ascore <- read_AScore_results(ascore_output_folder)
+    ascore <- lapply(ascore_output_folder, function(ascore_folder_i) {
+      read_AScore_results(ascore_folder_i)
+    }) %>%
+      rbindlist(fill = TRUE)
   }
-  masic_data <- read_masic_data(masic_output_folder,
-                                interference_score = TRUE)
+
+  if (verbose) {message("- Filtering MASIC results.")}
+  masic_data <- lapply(masic_output_folder, function(masic_folder) {
+    read_masic_data(masic_folder, interference_score = TRUE) %>%
+      filter_masic_data(0.5, 0)
+  })
 
   fst <- Biostrings::readAAStringSet(fasta_file)
   names(fst) <- sub(" .*", "", names(fst)) # extract first word
@@ -143,12 +165,12 @@ run_plexedpiper <- function(msgf_output_folder,
 
     if (verbose) message("   + Apply PTM filter")
     if (proteomics == "ph") {
-      reg.expr <- "grepl(\"\\\\*\", peptide)"
+      reg.expr <- "grepl('\\\\*', peptide)"
     } else if (proteomics == "ac") {
-      reg.expr <- "grepl(\"#\", peptide)"
+      reg.expr <- "grepl('#', peptide)"
     } else if (proteomics == "ub") {
       msnid$peptide <- gsub("@", "#", msnid$peptide)
-      reg.expr <- "grepl(\"#\", peptide)"
+      reg.expr <- "grepl('#', peptide)"
     }
     msnid <- apply_filter(msnid, reg.expr)
   }
@@ -165,7 +187,7 @@ run_plexedpiper <- function(msgf_output_folder,
   if(verbose) {message("   + Remove decoy sequences")}
   msnid <- apply_filter(msnid, "!isDecoy")
 
-  if (verbose) {message("   + Concatenating redundant RefSeq matches")}
+  if (verbose) {message("   + Concatenating redundant protein matches")}
   msnid <- assess_redundant_protein_matches(msnid, collapse = ",")
 
   if (verbose) {message("   + Assessing non-inferable proteins")}
@@ -192,9 +214,7 @@ run_plexedpiper <- function(msgf_output_folder,
   if (proteomics == "pr") {
     if (verbose) {message("   + Compute protein coverage")}
     msnid <- compute_accession_coverage(msnid, fst)
-  }
-
-  if (proteomics != "pr") {
+  } else {
     if(verbose) {message("   + Mapping sites to protein sequence")}
     if (proteomics == "ph") {
       mod_char <- "*"
@@ -215,11 +235,7 @@ run_plexedpiper <- function(msgf_output_folder,
     msnid <- extract_sequence_window(msnid, fasta = fst)
   }
 
-  if (verbose) {message("- Filtering MASIC results.")}
-  masic_data <- filter_masic_data(masic_data, 0.5, 0)
-
   args <- list(msnid      = msnid,
-               masic_data = masic_data,
                fractions  = study_design$fractions,
                samples    = study_design$samples,
                references = study_design$references,
@@ -228,13 +244,21 @@ run_plexedpiper <- function(msgf_output_folder,
                fasta_file = fasta_file)
 
   if (verbose) {message("- Making results tables.")}
-  if (proteomics == "pr") {
-    suppressMessages(rii_peptide <- do.call(make_rii_peptide_gl, args))
-    suppressMessages(results_ratio <- do.call(make_results_ratio_gl, args))
-  } else {
-    suppressMessages(rii_peptide   <- do.call(make_rii_peptide_ph,   args))
-    suppressMessages(results_ratio <- do.call(make_results_ratio_ph, args))
+  rii_fun <- switch(EXPR = proteomics,
+                    pr = make_rii_peptide_gl,
+                    make_rii_peptide_ph)
+  ratio_fun <- switch(EXPR = proteomics,
+                      pr = make_results_ratio_gl,
+                      make_results_ratio_ph)
+
+  results_ratio <- rii_peptide <- list()
+  for (i in seq_along(masic_data)) {
+    args[["masic_data"]] <- masic_data[[i]]
+    suppressMessages(rii_peptide[[i]] <- do.call(rii_fun, args))
+    suppressMessages(results_ratio[[i]] <- do.call(ratio_fun, args))
   }
+  rii_peptide <- purrr::reduce(rii_peptide, .f = full_join)
+  results_ratio <- purrr::reduce(results_ratio, .f = full_join)
 
   if (verbose) {message("- Saving results.")}
 
