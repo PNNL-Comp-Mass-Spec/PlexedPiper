@@ -52,7 +52,7 @@
 #' @importFrom MSnID psms MSnID compute_accession_coverage
 #'   correct_peak_selection extract_sequence_window
 #'   infer_parsimonious_accessions map_mod_sites
-#' @importFrom dplyr %>%
+#' @importFrom dplyr %>% full_join
 #' @importFrom data.table rbindlist
 #' @importFrom purrr reduce
 #'
@@ -121,7 +121,6 @@ run_plexedpiper <- function(msgf_output_folder,
   message("- Fetch study design tables")
 
   study_design <- read_study_design(study_design_folder, prefix = prefix)
-  # msnid <- read_msgf_data(msgf_output_folder)
 
   suppressMessages(msnid <- MSnID())
 
