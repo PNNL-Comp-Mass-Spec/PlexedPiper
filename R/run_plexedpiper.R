@@ -147,11 +147,6 @@ run_plexedpiper <- function(msgf_output_folder,
   fst <- Biostrings::readAAStringSet(fasta_file)
   names(fst) <- sub(" .*", "", names(fst)) # extract first word
 
-  if (annotation == "GENCODE") {
-    msnid$accession <- sub("([^\\|]+).+", "\\1", msnid$accession)
-    names(fst) <- sub("([^\\|]+).+", "\\1", names(fst))
-  }
-
   if (verbose) {message("- Filtering MS-GF+ results.")}
   if (proteomics == "pr") {
     if (verbose) {message("   + Correct for isotope selection error")}
@@ -185,6 +180,11 @@ run_plexedpiper <- function(msgf_output_folder,
 
   if(verbose) {message("   + Remove decoy sequences")}
   msnid <- apply_filter(msnid, "!isDecoy")
+
+  if (annotation == "GENCODE") {
+    msnid$accession <- sub("([^\\|]+).*", "\\1", msnid$accession)
+    names(fst) <- sub("([^\\|]+).*", "\\1", names(fst))
+  }
 
   if (verbose) {message("   + Concatenating redundant protein matches")}
   msnid <- assess_redundant_protein_matches(msnid, collapse = ",")

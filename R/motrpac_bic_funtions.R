@@ -134,7 +134,7 @@ make_rii_peptide_gl <- function(msnid,
 
   if(annotation == "GENCODE"){
     psms(msnid) <- psms(msnid) %>%
-      mutate(accession = sub("([^\\|]+).+", "\\1", accession))
+      mutate(accession = sub("([^\\|]+).*", "\\1", accession))
   }
   crosstab <- create_crosstab(msnid,
                               masic_data,
@@ -156,7 +156,7 @@ make_rii_peptide_gl <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).+"
+    rgx <- "([^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -238,7 +238,7 @@ make_results_ratio_gl <- function(msnid,
   annotation <- toupper(annotation)
 
   if (annotation == "GENCODE") {
-    msnid$accession <- sub("([^\\|]+).+", "\\1", msnid$accession)
+    msnid$accession <- sub("([^\\|]+).*", "\\1", msnid$accession)
   }
 
   crosstab <- create_crosstab(msnid, masic_data,
@@ -257,7 +257,7 @@ make_results_ratio_gl <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).+"
+    rgx <- "([^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -348,7 +348,7 @@ make_rii_peptide_ph <- function(msnid,
   annotation <- toupper(annotation)
 
   if (annotation == "GENCODE") {
-    msnid$accession = sub("([^\\|]+).+", "\\1", msnid$accession)
+    msnid$accession = sub("([^\\|]+).*", "\\1", msnid$accession)
   }
   aggregation_level <- c("accession", "peptide", "SiteID")
   crosstab <- create_crosstab(msnid,
@@ -370,7 +370,7 @@ make_rii_peptide_ph <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).+"
+    rgx <- "([^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -475,7 +475,7 @@ make_results_ratio_ph <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).+"
+    rgx <- "([^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
