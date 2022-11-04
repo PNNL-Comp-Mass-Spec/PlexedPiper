@@ -34,7 +34,7 @@ compute_num_peptides_per_1000aa <- function(msnid,
    mySequences <- readAAStringSet(path_to_FASTA)
    # compute protein lengths
    prot_lengths <-
-      data.frame(accession = sub("^(\\S+)\\s.*","\\1",names(mySequences)),
+      data.frame(accession = sub(" .*", "", names(mySequences)),
                  Length = width(mySequences),
                  stringsAsFactors = FALSE)
    # append with lengths of reverse sequences

@@ -52,7 +52,8 @@
 #' @importFrom MSnID psms MSnID compute_accession_coverage
 #'   correct_peak_selection extract_sequence_window
 #'   infer_parsimonious_accessions map_mod_sites
-#' @importFrom dplyr %>% full_join
+#' @importFrom dplyr %>% full_join select
+#' @importFrom tidyselect where
 #' @importFrom data.table rbindlist
 #' @importFrom purrr reduce
 #'
@@ -182,8 +183,11 @@ run_plexedpiper <- function(msgf_output_folder,
   msnid <- apply_filter(msnid, "!isDecoy")
 
   if (annotation == "GENCODE") {
-    msnid$accession <- sub("([^\\|]+).*", "\\1", msnid$accession)
-    names(fst) <- sub("([^\\|]+).*", "\\1", names(fst))
+    msnid$accession <- sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
+    names(fst) <- sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", names(fst))
+    if (anyDuplicated(names(fst)) != 0) {
+      stop("Duplicate FASTA entry names!")
+    }
   }
 
   if (verbose) {message("   + Concatenating redundant protein matches")}
@@ -256,8 +260,11 @@ run_plexedpiper <- function(msgf_output_folder,
     suppressMessages(rii_peptide[[i]] <- do.call(rii_fun, args))
     suppressMessages(results_ratio[[i]] <- do.call(ratio_fun, args))
   }
-  rii_peptide <- purrr::reduce(rii_peptide, .f = full_join)
-  results_ratio <- purrr::reduce(results_ratio, .f = full_join)
+  # Combine tables and remove columns with all missing values
+  rii_peptide <- purrr::reduce(rii_peptide, .f = full_join) %>%
+    dplyr::select(where(~ !all(is.na(.x))))
+  results_ratio <- purrr::reduce(results_ratio, .f = full_join) %>%
+    dplyr::select(where(~ !all(is.na(.x))))
 
   if (verbose) {message("- Saving results.")}
 

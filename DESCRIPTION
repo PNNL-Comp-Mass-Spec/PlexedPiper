@@ -21,6 +21,7 @@ Imports:
    purrr,
    tibble,
    tidyr,
+   tidyselect,
    readr,
    utils
 Suggests:

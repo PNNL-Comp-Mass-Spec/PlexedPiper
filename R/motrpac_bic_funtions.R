@@ -134,7 +134,7 @@ make_rii_peptide_gl <- function(msnid,
 
   if(annotation == "GENCODE"){
     psms(msnid) <- psms(msnid) %>%
-      mutate(accession = sub("([^\\|]+).*", "\\1", accession))
+      mutate(accession = sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", accession))
   }
   crosstab <- create_crosstab(msnid,
                               masic_data,
@@ -156,7 +156,7 @@ make_rii_peptide_gl <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -170,7 +170,8 @@ make_rii_peptide_gl <- function(msnid,
 
   # Add ENTREZID column to parse_FASTA_names results
   if (annotation == "GENCODE") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
   }
 
   # Feature data
@@ -184,12 +185,14 @@ make_rii_peptide_gl <- function(msnid,
     feature_data <- feature_data %>%
       mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
-      dplyr::select(-ANNOTATION) %>%
-      dplyr::rename(gene_symbol = SYMBOL,
-                    entrez_id = ENTREZID)
+      dplyr::select(-ANNOTATION)
   } else if (annotation == "GENCODE") {
     feature_data <- left_join(feature_data, tab, by = "protein_id")
   }
+
+  feature_data <- dplyr::rename(feature_data,
+                                gene_symbol = SYMBOL,
+                                entrez_id = ENTREZID)
 
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
@@ -238,7 +241,7 @@ make_results_ratio_gl <- function(msnid,
   annotation <- toupper(annotation)
 
   if (annotation == "GENCODE") {
-    msnid$accession <- sub("([^\\|]+).*", "\\1", msnid$accession)
+    msnid$accession <- sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
   }
 
   crosstab <- create_crosstab(msnid, masic_data,
@@ -257,7 +260,7 @@ make_results_ratio_gl <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -270,7 +273,8 @@ make_results_ratio_gl <- function(msnid,
   )
 
   if(annotation == "GENCODE"){
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
   }
 
   # Create Feature data
@@ -348,7 +352,7 @@ make_rii_peptide_ph <- function(msnid,
   annotation <- toupper(annotation)
 
   if (annotation == "GENCODE") {
-    msnid$accession = sub("([^\\|]+).*", "\\1", msnid$accession)
+    msnid$accession = sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
   }
   aggregation_level <- c("accession", "peptide", "SiteID")
   crosstab <- create_crosstab(msnid,
@@ -370,7 +374,7 @@ make_rii_peptide_ph <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -383,7 +387,8 @@ make_rii_peptide_ph <- function(msnid,
   )
 
   if(annotation == "GENCODE"){
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
   }
 
   ## Create RII peptide table
@@ -475,7 +480,7 @@ make_results_ratio_ph <- function(msnid,
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
   } else if (annotation == "GENCODE") {
-    rgx <- "([^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -488,7 +493,8 @@ make_results_ratio_ph <- function(msnid,
   )
 
   if(annotation == "GENCODE"){
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
   }
 
   ## Create RII peptide table
