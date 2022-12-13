@@ -155,6 +155,10 @@ make_rii_peptide_gl <- function(msnid,
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
     rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
@@ -172,6 +176,8 @@ make_rii_peptide_gl <- function(msnid,
   if (annotation == "GENCODE") {
     tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
       mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
   }
 
   # Feature data
@@ -181,12 +187,12 @@ make_rii_peptide_gl <- function(msnid,
            sequence = sub("(^.*)@(.*)", "\\2", Specie),
            organism_name = org_name)
 
-  if (annotation %in% c("REFSEQ", "UNIPROT")) {
+  if (annotation == "REFSEQ") {
     feature_data <- feature_data %>%
       mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       dplyr::select(-ANNOTATION)
-  } else if (annotation == "GENCODE") {
+  } else if (annotation %in% c("GENCODE", "UNIPROT")) {
     feature_data <- left_join(feature_data, tab, by = "protein_id")
   }
 
@@ -259,6 +265,10 @@ make_results_ratio_gl <- function(msnid,
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
     rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
@@ -272,9 +282,11 @@ make_results_ratio_gl <- function(msnid,
     fetch_conversion_table(org_name, from = from, to = to)
   )
 
-  if(annotation == "GENCODE"){
+  if (annotation == "GENCODE") {
     tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
       mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
   }
 
   # Create Feature data
@@ -282,12 +294,12 @@ make_results_ratio_gl <- function(msnid,
     dplyr::select(protein_id) %>%
     mutate(organism_name = org_name)
 
-  if (annotation %in% c("REFSEQ", "UNIPROT")) {
+  if (annotation == "REFSEQ") {
     feature_data <- feature_data %>%
       mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       select(-ANNOTATION)
-  } else if (annotation == "GENCODE") {
+  } else if (annotation %in% c("UNIPROT", "GENCODE")) {
     feature_data <- left_join(feature_data, tab, by = "protein_id")
   }
 
@@ -373,6 +385,10 @@ make_rii_peptide_ph <- function(msnid,
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
     rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
@@ -386,9 +402,11 @@ make_rii_peptide_ph <- function(msnid,
     fetch_conversion_table(org_name, from = from, to = to)
   )
 
-  if(annotation == "GENCODE"){
+  if (annotation == "GENCODE"){
     tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
       mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
   }
 
   ## Create RII peptide table
@@ -400,12 +418,12 @@ make_rii_peptide_ph <- function(msnid,
     mutate(ptm_peptide = paste(ptm_id, sequence, sep = sep),
            organism_name = org_name)
 
-  if(annotation %in% c("REFSEQ", "UNIPROT")) {
+  if (annotation == "REFSEQ") {
     feature_data <- feature_data %>%
       mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       dplyr::select(-ANNOTATION)
-  } else if (annotation == "GENCODE") {
+  } else if (annotation %in% c("GENCODE", "UNIPROT")) {
     feature_data <- left_join(feature_data, tab, by = "protein_id")
   }
 
@@ -479,6 +497,10 @@ make_results_ratio_ph <- function(msnid,
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
     rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
     grp <- "\\1"
@@ -492,9 +514,11 @@ make_results_ratio_ph <- function(msnid,
     fetch_conversion_table(org_name, from = from, to = to)
   )
 
-  if(annotation == "GENCODE"){
+  if (annotation == "GENCODE") {
     tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
       mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
   }
 
   ## Create RII peptide table
@@ -504,12 +528,12 @@ make_results_ratio_ph <- function(msnid,
            ptm_id = sub("(^.*)@(.*)", "\\2", Specie),
            organism_name = org_name)
 
-  if (annotation %in% c("REFSEQ", "UNIPROT")) {
+  if (annotation == "REFSEQ") {
     feature_data <- feature_data %>%
       mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       select(-ANNOTATION)
-  } else if (annotation == "GENCODE") {
+  } else if (annotation %in% c("GENCODE", "UNIPROT")) {
     feature_data <- left_join(feature_data, tab, by = "protein_id")
   }
 
