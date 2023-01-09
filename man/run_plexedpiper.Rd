@@ -91,6 +91,7 @@ and Ratio Results tables used by the MoTrPAC Bioinformatics Center (BIC).
 }
 \examples{
 \dontrun{
+# Example with pseudo-paths
 results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
                            fasta_file  = "~/path/to/fasta/sequence.fasta",
                            masic_output_folder = "~/path/to/masic-results/",
