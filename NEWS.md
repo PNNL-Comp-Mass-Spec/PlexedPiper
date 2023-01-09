@@ -1,13 +1,10 @@
 # PlexedPiper 0.4.0 (2023-01-09)
 
--   Updated handling of UniProt-to-gene conversion in the `make_rii_peptide_*` and `make_results_ratio_*` functions. Now uses gene symbols from FASTA header and the *AnnotationDbi* Bioconductor package to convert to Entrez gene IDs, rather than converting from protein to gene symbol and Entrez gene.
--   Added "pkgdown" GitHub Action to automatically build website.
-
-# PlexedPiper 0.3.7 (2022-10-22)
-
 -   Updated MoTrPAC BIC functions to extract information from GENCODE FASTA headers and include them as columns in results tables.
 -   Added checks for `create_crosstab` input.
 -   Updated `run_plexedpiper` to accept multiple folder paths. Now capable of integrating multiple datasets, such as MoTrPAC PASS1A/1C.
+-   Updated handling of UniProt-to-gene conversion in the `make_rii_peptide_*` and `make_results_ratio_*` functions. Now uses gene symbols from FASTA header and the *AnnotationDbi* Bioconductor package to convert to Entrez gene IDs, rather than converting from protein to gene symbol and Entrez gene.
+-   Added "pkgdown" GitHub Action to automatically build website.
 
 # PlexedPiper 0.3.6 (2022-07-01)
 
