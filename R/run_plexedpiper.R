@@ -52,10 +52,10 @@
 #' @importFrom MSnID psms MSnID compute_accession_coverage
 #'   correct_peak_selection extract_sequence_window
 #'   infer_parsimonious_accessions map_mod_sites
-#' @importFrom dplyr %>% full_join select
+#' @importFrom dplyr %>% full_join select mutate filter pull
 #' @importFrom tidyselect where
 #' @importFrom data.table rbindlist
-#' @importFrom purrr reduce
+#' @importFrom purrr reduce map
 #'
 #' @examples \dontrun{
 #' # Example with pseudo-paths
@@ -126,7 +126,7 @@ run_plexedpiper <- function(msgf_output_folder,
 
   suppressMessages(msnid <- MSnID())
 
-  psms(msnid) <- lapply(msgf_output_folder, function(msgf_folder_i) {
+  psms(msnid) <- map(msgf_output_folder, function(msgf_folder_i) {
     out <- read_msgf_data(msgf_folder_i)
     out <- psms(out)
     return(out)
@@ -134,14 +134,12 @@ run_plexedpiper <- function(msgf_output_folder,
     rbindlist(fill = TRUE)
 
   if (!is.null(ascore_output_folder)) {
-    ascore <- lapply(ascore_output_folder, function(ascore_folder_i) {
-      read_AScore_results(ascore_folder_i)
-    }) %>%
+    ascore <- map(ascore_output_folder, read_AScore_results) %>%
       rbindlist(fill = TRUE)
   }
 
   if (verbose) {message("- Filtering MASIC results.")}
-  masic_data <- lapply(masic_output_folder, function(masic_folder) {
+  masic_data <- map(masic_output_folder, function(masic_folder) {
     read_masic_data(masic_folder, interference_score = TRUE) %>%
       filter_masic_data(0.5, 0)
   })
@@ -184,8 +182,19 @@ run_plexedpiper <- function(msgf_output_folder,
   msnid <- apply_filter(msnid, "!isDecoy")
 
   if (annotation == "GENCODE") {
-    msnid$accession <- sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
-    names(fst) <- sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", names(fst))
+    # Remove duplicate GENCODE protein IDs using FASTA file headers
+    pttrn <- "(ENSP[^\\|]+).*"
+    unique_ids <- data.frame(id_orig = names(fst)) %>%
+      mutate(id_new = sub(pttrn, "\\1", id_orig),
+             duped = duplicated(id_new)) %>%
+      filter(!duped) %>%
+      pull(id_orig)
+    msnid <- apply_filter(msnid, "accession %in% unique_ids")
+    msnid$accession <- sub(pttrn, "\\1", msnid$accession)
+    fst <- fst[names(fst) %in% unique_ids]
+    names(fst) <- sub(pttrn, "\\1", names(fst))
+
+    # Sanity check
     if (anyDuplicated(names(fst)) != 0) {
       stop("Duplicate FASTA entry names!")
     }
@@ -228,7 +237,7 @@ run_plexedpiper <- function(msgf_output_folder,
       stop("Proteomics variable not supported.")
     }
 
-    msnid <- map_mod_sites(msnid,
+    msnid <- map_mod_sites(object          = msnid,
                            fasta           = fst,
                            accession_col   = "accession",
                            peptide_mod_col = "peptide",

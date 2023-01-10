@@ -133,11 +133,6 @@ make_rii_peptide_gl <- function(msnid,
   aggregation_level <- c("accession", "peptide")
   annotation <- toupper(annotation)
 
-  if(annotation == "GENCODE"){
-    psms(msnid) <- psms(msnid) %>%
-      mutate(accession = sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*",
-                             "\\1", accession))
-  }
   crosstab <- create_crosstab(msnid,
                               masic_data,
                               aggregation_level,
@@ -145,7 +140,6 @@ make_rii_peptide_gl <- function(msnid,
   crosstab <- 2^crosstab  %>% # undo log2
     as.data.frame() %>%
     rownames_to_column("Specie")
-
 
   ## Fetch conversion table
   from <- annotation
@@ -163,7 +157,7 @@ make_rii_peptide_gl <- function(msnid,
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -174,14 +168,6 @@ make_rii_peptide_gl <- function(msnid,
   conv <- suppressWarnings(
     fetch_conversion_table(org_name, from = from, to = to)
   )
-
-  # Add ENTREZID column to parse_FASTA_names results
-  if (annotation == "GENCODE") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
-      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
-  } else if (annotation == "UNIPROT") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
-  }
 
   # Feature data
   feature_data <- crosstab %>%
@@ -196,7 +182,9 @@ make_rii_peptide_gl <- function(msnid,
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       dplyr::select(-ANNOTATION)
   } else if (annotation %in% c("GENCODE", "UNIPROT")) {
-    feature_data <- left_join(feature_data, tab, by = "protein_id")
+    feature_data <- left_join(feature_data, fasta_names,
+                              by = "protein_id") %>%
+      left_join(conv, by = "SYMBOL")
   }
 
   feature_data <- dplyr::rename(feature_data,
@@ -232,8 +220,6 @@ utils::globalVariables(
 )
 
 
-
-
 #' @export
 #' @rdname motrpac_bic_output
 make_results_ratio_gl <- function(msnid,
@@ -249,10 +235,6 @@ make_results_ratio_gl <- function(msnid,
   ## Create crosstab ----------------------------------------------------
   aggregation_level <- c("accession")
   annotation <- toupper(annotation)
-
-  if (annotation == "GENCODE") {
-    msnid$accession <- sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
-  }
 
   crosstab <- create_crosstab(msnid, masic_data,
                               aggregation_level,
@@ -275,7 +257,7 @@ make_results_ratio_gl <- function(msnid,
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -287,13 +269,6 @@ make_results_ratio_gl <- function(msnid,
     fetch_conversion_table(org_name, from = from, to = to)
   )
 
-  if (annotation == "GENCODE") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
-      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
-  } else if (annotation == "UNIPROT") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
-  }
-
   # Create Feature data
   feature_data <- crosstab %>%
     dplyr::select(protein_id) %>%
@@ -304,14 +279,15 @@ make_results_ratio_gl <- function(msnid,
       mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       select(-ANNOTATION)
-  } else if (annotation %in% c("UNIPROT", "GENCODE")) {
-    feature_data <- left_join(feature_data, tab, by = "protein_id")
+  } else if (annotation %in% c("GENCODE", "UNIPROT")) {
+    feature_data <- left_join(feature_data, fasta_names,
+                              by = "protein_id") %>%
+      left_join(conv, by = "SYMBOL")
   }
 
   feature_data <- dplyr::rename(feature_data,
                                 gene_symbol = SYMBOL,
                                 entrez_id = ENTREZID)
-
 
   ## Additional info from MS/MS -------------------------------------------
   ids <- psms(msnid) %>%
@@ -338,7 +314,6 @@ make_results_ratio_gl <- function(msnid,
 
 utils::globalVariables(c("noninferableProteins", "percentAACoverage",
                          "percent_coverage", "feature", "transcript_id"))
-
 
 
 #' @export
@@ -368,9 +343,6 @@ make_rii_peptide_ph <- function(msnid,
   ## Create Crosstab
   annotation <- toupper(annotation)
 
-  if (annotation == "GENCODE") {
-    msnid$accession = sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
-  }
   aggregation_level <- c("accession", "peptide", "SiteID")
   crosstab <- create_crosstab(msnid,
                               masic_data,
@@ -396,7 +368,7 @@ make_rii_peptide_ph <- function(msnid,
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -407,13 +379,6 @@ make_rii_peptide_ph <- function(msnid,
   conv <- suppressWarnings(
     fetch_conversion_table(org_name, from = from, to = to)
   )
-
-  if (annotation == "GENCODE"){
-    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
-      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
-  } else if (annotation == "UNIPROT") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
-  }
 
   ## Create RII peptide table
   feature_data <- crosstab %>%
@@ -429,7 +394,9 @@ make_rii_peptide_ph <- function(msnid,
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       dplyr::select(-ANNOTATION)
   } else if (annotation %in% c("GENCODE", "UNIPROT")) {
-    feature_data <- left_join(feature_data, tab, by = "protein_id")
+    feature_data <- left_join(feature_data, fasta_names,
+                              by = "protein_id") %>%
+      left_join(conv, by = "SYMBOL")
   }
 
   feature_data <- dplyr::rename(feature_data,
@@ -474,8 +441,6 @@ utils::globalVariables(
 )
 
 
-
-
 #' @export
 #' @rdname motrpac_bic_output
 make_results_ratio_ph <- function(msnid,
@@ -487,8 +452,9 @@ make_results_ratio_ph <- function(msnid,
                                   fasta_file)
 {
   aggregation_level <- c("accession", "SiteID")
-  crosstab <- create_crosstab(msnid, masic_data, aggregation_level, fractions,
-                              samples, references)
+  crosstab <- create_crosstab(msnid, masic_data,
+                              aggregation_level,
+                              fractions, samples, references)
   crosstab <- as.data.frame(crosstab) %>%
     rownames_to_column("Specie")
 
@@ -509,7 +475,7 @@ make_results_ratio_ph <- function(msnid,
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    rgx <- "(ENSP[^\\|]+).*"
     grp <- "\\1"
     fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
       dplyr::rename(SYMBOL = gene)
@@ -520,13 +486,6 @@ make_results_ratio_ph <- function(msnid,
   conv <- suppressWarnings(
     fetch_conversion_table(org_name, from = from, to = to)
   )
-
-  if (annotation == "GENCODE") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
-      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
-  } else if (annotation == "UNIPROT") {
-    tab <- left_join(fasta_names, conv, by = "SYMBOL")
-  }
 
   ## Create RII peptide table
   feature_data <- crosstab %>%
@@ -541,7 +500,9 @@ make_results_ratio_ph <- function(msnid,
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       select(-ANNOTATION)
   } else if (annotation %in% c("GENCODE", "UNIPROT")) {
-    feature_data <- left_join(feature_data, tab, by = "protein_id")
+    feature_data <- left_join(feature_data, fasta_names,
+                              by = "protein_id") %>%
+      left_join(conv, by = "SYMBOL")
   }
 
   feature_data <- dplyr::rename(feature_data,
@@ -585,8 +546,6 @@ utils::globalVariables(
 )
 
 
-
-
 #' @export
 #' @rdname motrpac_bic_output
 assess_redundant_protein_matches <- function(msnid, collapse="|") {
@@ -600,8 +559,6 @@ assess_redundant_protein_matches <- function(msnid, collapse="|") {
   psms(msnid) <- left_join(psms(msnid), res, by="peptide")
   return(msnid)
 }
-
-
 
 
 #' @export
