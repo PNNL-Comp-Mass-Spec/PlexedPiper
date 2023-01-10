@@ -1,28 +1,29 @@
 Package: PlexedPiper
 Type: Package
 Title: Pipeline for isobaric quantification
-Version: 0.3.6
-Date: 2022-08-06
+Version: 0.4.0
+Date: 2023-01-09
 Author: Vladislav Petyuk vladislav.petyuk@pnnl.gov
 Maintainer: Vladislav Petyuk <vladislav.petyuk@pnnl.gov>
 Description: Pipeline for isobaric quantification.
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.3
 Depends:
     MSnID (>= 1.18.1)
 Imports:
-   Biostrings,
-   data.table,
-   plyr,
-   dplyr,
-   IRanges,
-   MSnbase,
-   tibble,
-   tidyr,
-   readr,
-   utils
+    Biostrings,
+    data.table,
+    plyr,
+    dplyr,
+    MSnbase,
+    purrr,
+    tibble,
+    tidyr,
+    tidyselect,
+    readr,
+    utils
 Suggests:
     BiocStyle,
     PlexedPiperTestData,
@@ -32,8 +33,11 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 Remotes:
-   github::PNNL-Comp-Mass-Spec/MSnID@pnnl-master,
-   github::PNNL-Comp-Mass-Spec/PlexedPiperTestData,
-   github::PNNL-Comp-Mass-Spec/PNNL.DMS.utils
+    github::PNNL-Comp-Mass-Spec/MSnID@pnnl-master,
+    github::PNNL-Comp-Mass-Spec/PlexedPiperTestData,
+    github::PNNL-Comp-Mass-Spec/PNNL.DMS.utils
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+URL: 
+    https://pnnl-comp-mass-spec.github.io/PlexedPiper/,
+    https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper

@@ -1,6 +1,7 @@
 #' @title Format Tables for BIC
 #'
-#' @description Assembles data in format compliant with BIC requirements.
+#' @description Assembles data in format compliant with BIC requirements. Used
+#'   internally by \code{\link[PlexedPiper]{run_plexedpiper}}.
 #'
 #' @details
 #' The `ratio` and `rii` functions require columns "redundantAccessions",
@@ -29,18 +30,19 @@
 #' @param references (object coercible to `data.table`) study design table
 #'   describing reference value calculation
 #' @param annotation (character) format of `accessions(msnid)`. Either
-#'   `"refseq"` or `"uniprot"` (case insensitive).
-#' @param org_name (character) scientific name of organism (e.g. `"Homo
+#'   `"refseq"`, `"uniprot"`, or `"gencode"` (case insensitive).
+#' @param org_name (character) scientific name of organism (e.g., `"Homo
 #'   sapiens"`, `"Rattus norvegicus"`, `"Mus musculus"`, etc.). Case sensitive.
 #' @param sep (character) used to concatenate protein, SiteID, and peptide.
 #' @param collapse (character) used to collapse proteins in
 #'   `assess_redundant_protein_matches`
+#' @param fasta_file (character) Path to FASTA file
 #'
-#' @importFrom MSnID fetch_conversion_table
+#' @importFrom MSnID fetch_conversion_table parse_FASTA_names
 #' @importFrom dplyr select inner_join left_join mutate %>% case_when rename
-#'   group_by summarize if_else arrange
+#'   group_by summarize arrange
 #' @importFrom tibble rownames_to_column
-#' @importFrom IRanges IRanges IRangesList reduce
+#' @importFrom tidyr separate
 #'
 #' @name motrpac_bic_output
 #'
@@ -88,13 +90,15 @@
 #' results_ratio <- make_results_ratio_gl(msnid, masic_data,
 #'                                        fractions, samples, references,
 #'                                        annotation = "RefSeq",
-#'                                        org_name = "Rattus norvegicus")
+#'                                        org_name = "Rattus norvegicus",
+#'                                        fasta_file = path_to_FASTA)
 #' head(results_ratio, 10)
 #'
 #' rii_peptide <- make_rii_peptide_gl(msnid, masic_data,
 #'                                    fractions, samples, references,
 #'                                    annotation = "RefSeq",
-#'                                    org_name = "Rattus norvegicus")
+#'                                    org_name = "Rattus norvegicus",
+#'                                    fasta_file = path_to_FASTA)
 #' head(rii_peptide, 10)
 #'
 #' # Clean-up cache
@@ -104,16 +108,19 @@
 
 #' @export
 #' @rdname motrpac_bic_output
-make_rii_peptide_gl <- function(msnid, masic_data,
-                                fractions, samples, references,
-                                annotation, org_name = "Rattus norvegicus") {
-
+make_rii_peptide_gl <- function(msnid,
+                                masic_data,
+                                fractions,
+                                samples,
+                                references,
+                                annotation,
+                                org_name = "Rattus norvegicus",
+                                fasta_file)
+{
   ## Make RII study design tables
   if (any(duplicated(samples$ReporterAlias))) {
     samples_rii <- samples %>%
-      mutate(MeasurementName = if_else(is.na(MeasurementName),
-                                       paste(ReporterAlias, PlexID, sep="_"),
-                                       ReporterAlias))
+      mutate(MeasurementName = paste(ReporterAlias, PlexID, sep="_"))
   } else {
     samples_rii <- samples %>%
       mutate(MeasurementName = ReporterAlias)
@@ -124,116 +131,197 @@ make_rii_peptide_gl <- function(msnid, masic_data,
 
   ## Create crosstab
   aggregation_level <- c("accession", "peptide")
+  annotation <- toupper(annotation)
+
+  if(annotation == "GENCODE"){
+    psms(msnid) <- psms(msnid) %>%
+      mutate(accession = sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*",
+                             "\\1", accession))
+  }
   crosstab <- create_crosstab(msnid,
                               masic_data,
                               aggregation_level,
                               fractions, samples_rii, references_rii)
-  crosstab <- 2^crosstab # undo log2
-
-  crosstab <- as.data.frame(crosstab) %>%
+  crosstab <- 2^crosstab  %>% # undo log2
+    as.data.frame() %>%
     rownames_to_column("Specie")
 
+
   ## Fetch conversion table
-  annotation <- toupper(annotation)
-  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  from <- annotation
+  to <- c("SYMBOL", "ENTREZID")
+
   if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene,
+                    protein_id = feature)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
+  } else if (annotation == "GENCODE") {
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    grp <- "\\1"
+    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   }
+
   conv <- suppressWarnings(
-    fetch_conversion_table(org_name,
-                           from = annotation,
-                           to = c("SYMBOL", "ENTREZID"))
+    fetch_conversion_table(org_name, from = from, to = to)
   )
+
+  # Add ENTREZID column to parse_FASTA_names results
+  if (annotation == "GENCODE") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+  }
 
   # Feature data
   feature_data <- crosstab %>%
-    select(Specie) %>%
-    mutate(protein_id = sub("(^.*)@(.*)", "\\1", Specie),
-           sequence = sub("(^.*)@(.*)", "\\2", Specie),
-           organism_name = org_name) %>%
-    mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
-    select(-ANNOTATION) %>%
-    rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID)
+    dplyr::select(Specie) %>%
+    tidyr::separate(col = Specie, into = c("protein_id", "sequence"),
+                    sep = "@", remove = FALSE) %>%
+    mutate(organism_name = org_name)
+
+  if (annotation == "REFSEQ") {
+    feature_data <- feature_data %>%
+      mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
+      left_join(conv, by = c("ANNOTATION" = annotation)) %>%
+      dplyr::select(-ANNOTATION)
+  } else if (annotation %in% c("GENCODE", "UNIPROT")) {
+    feature_data <- left_join(feature_data, tab, by = "protein_id")
+  }
+
+  feature_data <- dplyr::rename(feature_data,
+                                gene_symbol = SYMBOL,
+                                entrez_id = ENTREZID)
 
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
-    select(accession, peptide, noninferableProteins, MSGFDB_SpecEValue) %>%
-    rename(protein_id = accession,
-           sequence = peptide,
-           redundant_ids = noninferableProteins) %>%
+    dplyr::select(accession, peptide,
+                  noninferableProteins, MSGFDB_SpecEValue) %>%
+    dplyr::rename(protein_id = accession,
+                  sequence = peptide,
+                  redundant_ids = noninferableProteins) %>%
     group_by(protein_id, sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue)) %>%
     mutate(is_contaminant = grepl("Contaminant", protein_id))
 
   # Final table
   rii_peptide <- feature_data %>%
-    inner_join(ids, by=c("protein_id", "sequence")) %>%
-    inner_join(crosstab, by="Specie") %>%
-    select(-Specie)
+    inner_join(ids, by = c("protein_id", "sequence")) %>%
+    inner_join(crosstab, by = "Specie") %>%
+    dplyr::select(-Specie)
+
+  return(rii_peptide)
 }
 
-utils::globalVariables(c("MeasurementName", "ReporterAlias", "PlexID", "Specie",
-                         "protein_id", "ANNOTATION", "SYMBOL", "ENTREZID",
-                         "accession", "peptide", "noninferableProteins",
-                         "MSGFDB_SpecEValue", "redundant_ids"))
+utils::globalVariables(
+  c("MeasurementName", "ReporterAlias", "PlexID", "Specie",
+    "protein_id", "ANNOTATION", "SYMBOL", "ENTREZID",
+    "accession", "peptide", "noninferableProteins",
+    "MSGFDB_SpecEValue", "redundant_ids", "gene",
+    "feature", "transcript_id")
+)
 
 
 
 
 #' @export
 #' @rdname motrpac_bic_output
-make_results_ratio_gl <- function(msnid, masic_data,
-                                  fractions, samples, references,
-                                  annotation, org_name = "Rattus norvegicus") {
-  ## Create crosstab
+make_results_ratio_gl <- function(msnid,
+                                  masic_data,
+                                  fractions,
+                                  samples,
+                                  references,
+                                  annotation,
+                                  org_name = "Rattus norvegicus",
+                                  sep = "_",
+                                  fasta_file)
+{
+  ## Create crosstab ----------------------------------------------------
   aggregation_level <- c("accession")
-  crosstab <- create_crosstab(msnid, masic_data, aggregation_level, fractions,
-                              samples, references)
+  annotation <- toupper(annotation)
 
-  crosstab <- as.data.frame(crosstab) %>%
+  if (annotation == "GENCODE") {
+    msnid$accession <- sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
+  }
+
+  crosstab <- create_crosstab(msnid, masic_data,
+                              aggregation_level,
+                              fractions, samples, references) %>%
+    as.data.frame() %>%
     rownames_to_column("protein_id")
 
-  ## Fetch conversation table
-  annotation <- toupper(annotation)
-  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  ## Add feature annotations --------------------------------------------
+  from <- annotation
+  to <- c("SYMBOL", "ENTREZID")
   if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene,
+                    protein_id = feature)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
+  } else if (annotation == "GENCODE") {
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    grp <- "\\1"
+    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   }
+
   conv <- suppressWarnings(
-    fetch_conversion_table(org_name,
-                           from = annotation,
-                           to = c("SYMBOL", "ENTREZID"))
+    fetch_conversion_table(org_name, from = from, to = to)
   )
 
-  ## Create feature data
+  if (annotation == "GENCODE") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+  }
+
+  # Create Feature data
   feature_data <- crosstab %>%
-    select(protein_id) %>%
-    mutate(organism_name = org_name) %>%
-    mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
-    select(-ANNOTATION) %>%
-    rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID)
+    dplyr::select(protein_id) %>%
+    mutate(organism_name = org_name)
+
+  if (annotation == "REFSEQ") {
+    feature_data <- feature_data %>%
+      mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
+      left_join(conv, by = c("ANNOTATION" = annotation)) %>%
+      select(-ANNOTATION)
+  } else if (annotation %in% c("UNIPROT", "GENCODE")) {
+    feature_data <- left_join(feature_data, tab, by = "protein_id")
+  }
+
+  feature_data <- dplyr::rename(feature_data,
+                                gene_symbol = SYMBOL,
+                                entrez_id = ENTREZID)
 
 
-  ## Additional info from MS/MS
+  ## Additional info from MS/MS -------------------------------------------
   ids <- psms(msnid) %>%
-    select(accession, peptide, noninferableProteins, percentAACoverage,
-           MSGFDB_SpecEValue) %>%
-    rename(protein_id = accession,
-           sequence = peptide,
-           redundant_ids = noninferableProteins,
-           percent_coverage = percentAACoverage) %>%
+    dplyr::select(accession, peptide,
+                  noninferableProteins, percentAACoverage,
+                  MSGFDB_SpecEValue) %>%
+    dplyr::rename(protein_id = accession,
+                  sequence = peptide,
+                  redundant_ids = noninferableProteins,
+                  percent_coverage = percentAACoverage) %>%
     group_by(protein_id, sequence, redundant_ids, percent_coverage) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue)) %>%
     group_by(protein_id, redundant_ids, percent_coverage) %>%
@@ -242,27 +330,33 @@ make_results_ratio_gl <- function(msnid, masic_data,
     mutate(is_contaminant = grepl("Contaminant", protein_id))
 
   results_ratio <- feature_data %>%
-    inner_join(ids, by="protein_id") %>%
-    inner_join(crosstab, by="protein_id")
+    inner_join(ids, by = "protein_id") %>%
+    inner_join(crosstab, by = "protein_id")
+
+  return(results_ratio)
 }
 
 utils::globalVariables(c("noninferableProteins", "percentAACoverage",
-                         "percent_coverage"))
+                         "percent_coverage", "feature", "transcript_id"))
 
 
 
 #' @export
 #' @rdname motrpac_bic_output
-make_rii_peptide_ph <- function(msnid, masic_data,
-                                fractions, samples, references,
-                                annotation, org_name = "Rattus norvegicus",
-                                sep = "_") {
+make_rii_peptide_ph <- function(msnid,
+                                masic_data,
+                                fractions,
+                                samples,
+                                references,
+                                annotation,
+                                org_name = "Rattus norvegicus",
+                                sep = "_",
+                                fasta_file)
+{
   ## Make RII study design tables
   if (any(duplicated(samples$ReporterAlias))) {
     samples_rii <- samples %>%
-      mutate(MeasurementName = if_else(is.na(MeasurementName),
-                                       paste(ReporterAlias, PlexID, sep="_"),
-                                       ReporterAlias))
+      mutate(MeasurementName = paste(ReporterAlias, PlexID, sep="_"))
   } else {
     samples_rii <- samples %>%
       mutate(MeasurementName = ReporterAlias)
@@ -271,59 +365,88 @@ make_rii_peptide_ph <- function(msnid, masic_data,
   references_rii <- references %>%
     mutate(Reference = 1)
 
-  ## Create crosstab
+  ## Create Crosstab
+  annotation <- toupper(annotation)
+
+  if (annotation == "GENCODE") {
+    msnid$accession = sub("(ENSP[^\\|]+\\|ENST[^\\|]+).*", "\\1", msnid$accession)
+  }
   aggregation_level <- c("accession", "peptide", "SiteID")
   crosstab <- create_crosstab(msnid,
                               masic_data,
                               aggregation_level,
                               fractions, samples_rii, references_rii)
 
-  crosstab <- 2^crosstab # undo log2
-
-  crosstab <- as.data.frame(crosstab) %>%
+  crosstab <- 2^crosstab %>% # undo log2
+    as.data.frame() %>%
     rownames_to_column("Specie")
 
-  ## Fetch conversation table
-  annotation <- toupper(annotation)
-  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  ## Fetch conversion table -----
+  from <- annotation
+  to <- c("SYMBOL", "ENTREZID")
   if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene,
+                    protein_id = feature)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
+  } else if (annotation == "GENCODE") {
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    grp <- "\\1"
+    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   }
-  conv <- suppressWarnings(
-    fetch_conversion_table(org_name,
-                                                  from = toupper(annotation),
-                                                  to = c("SYMBOL", "ENTREZID"))
-    )
 
+  conv <- suppressWarnings(
+    fetch_conversion_table(org_name, from = from, to = to)
+  )
+
+  if (annotation == "GENCODE"){
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+  }
 
   ## Create RII peptide table
   feature_data <- crosstab %>%
-    select(Specie) %>%
-    mutate(protein_id = sub("(^.*)@(.*)@(.*)", "\\1", Specie),
-           sequence = sub("(^.*)@(.*)@(.*)", "\\2", Specie),
-           ptm_id = sub("(^.*)@(.*)@(.*)", "\\3", Specie)) %>%
-    mutate(ptm_peptide = paste(ptm_id, sequence, sep=sep),
-           organism_name = org_name) %>%
-    mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
-    select(-ANNOTATION) %>%
-    rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID)
+    dplyr::select(Specie) %>%
+    tidyr::separate(Specie, into = c("protein_id", "sequence", "ptm_id"),
+                    sep = "@", remove = FALSE) %>%
+    mutate(ptm_peptide = paste(ptm_id, sequence, sep = sep),
+           organism_name = org_name)
+
+  if (annotation == "REFSEQ") {
+    feature_data <- feature_data %>%
+      mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
+      left_join(conv, by = c("ANNOTATION" = annotation)) %>%
+      dplyr::select(-ANNOTATION)
+  } else if (annotation %in% c("GENCODE", "UNIPROT")) {
+    feature_data <- left_join(feature_data, tab, by = "protein_id")
+  }
+
+  feature_data <- dplyr::rename(feature_data,
+                                gene_symbol = SYMBOL,
+                                entrez_id = ENTREZID)
 
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
-    select(protein_id=accession,
-           sequence=peptide,
-           ptm_id=SiteID,
-           flanking_sequence=sequenceWindow,
-           redundant_ids=redundantAccessions,
+    select(protein_id = accession,
+           sequence = peptide,
+           ptm_id = SiteID,
+           flanking_sequence = sequenceWindow,
+           redundant_ids = redundantAccessions,
            MSGFDB_SpecEValue,
            maxAScore) %>%
-    group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_ids) %>%
+    group_by(protein_id, sequence, ptm_id,
+             flanking_sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue),
               confident_score = max(maxAScore)) %>%
     mutate(confident_site = case_when(confident_score >= 17 ~ TRUE,
@@ -336,25 +459,33 @@ make_rii_peptide_ph <- function(msnid, masic_data,
            ptm_peptide = gsub("-", sep, ptm_peptide)) %>%
     inner_join(crosstab, by="Specie") %>%
     select(-Specie)
+
+  return(rii_peptide)
 }
 
-utils::globalVariables(c("ptm_peptide", "MeasurementName", "ReporterAlias",
-                         "PlexID", "Specie", "ptm_id", "protein_id",
-                         "ANNOTATION", "SYMBOL", "ENTREZID", "accession",
-                         "peptide", "SiteID", "sequenceWindow",
-                         "redundantAccessions", "MSGFDB_SpecEValue",
-                         "maxAScore", "flanking_sequence", "redundant_ids"))
+utils::globalVariables(
+  c("ptm_peptide", "MeasurementName", "ReporterAlias",
+    "PlexID", "Specie", "ptm_id", "protein_id",
+    "ANNOTATION", "SYMBOL", "ENTREZID", "accession",
+    "peptide", "SiteID", "sequenceWindow",
+    "redundantAccessions", "MSGFDB_SpecEValue",
+    "maxAScore", "flanking_sequence", "redundant_ids", "gene",
+    "feature", "transcript_id")
+)
 
 
 
 
 #' @export
 #' @rdname motrpac_bic_output
-make_results_ratio_ph <- function(msnid, masic_data,
+make_results_ratio_ph <- function(msnid,
+                                  masic_data,
                                   fractions, samples, references,
-                                  annotation, org_name = "Rattus norvegicus",
-                                  sep = "_") {
-
+                                  annotation,
+                                  org_name = "Rattus norvegicus",
+                                  sep = "_",
+                                  fasta_file)
+{
   aggregation_level <- c("accession", "SiteID")
   crosstab <- create_crosstab(msnid, masic_data, aggregation_level, fractions,
                               samples, references)
@@ -363,31 +494,59 @@ make_results_ratio_ph <- function(msnid, masic_data,
 
   ## Fetch conversation table
   annotation <- toupper(annotation)
-  stopifnot(annotation %in% c("REFSEQ", "UNIPROT"))
+  from <- annotation
+  to <- c("SYMBOL", "ENTREZID")
+
   if (annotation == "REFSEQ") {
     rgx <- "(^.*)\\.\\d+"
     grp <- "\\1"
   } else if (annotation == "UNIPROT") {
     rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
     grp <- "\\3"
+    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+      dplyr::rename(SYMBOL = gene,
+                    protein_id = feature)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
+  } else if (annotation == "GENCODE") {
+    rgx <- "(ENSP[^\\|]+\\|ENST[^\\|]+).*"
+    grp <- "\\1"
+    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+      dplyr::rename(SYMBOL = gene)
+    from <- "SYMBOL"
+    to <- "ENTREZID"
   }
+
   conv <- suppressWarnings(
-    fetch_conversion_table(org_name,
-                                                  from = toupper(annotation),
-                                                  to = c("SYMBOL", "ENTREZID"))
-    )
+    fetch_conversion_table(org_name, from = from, to = to)
+  )
+
+  if (annotation == "GENCODE") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL") %>%
+      mutate(protein_id = paste(protein_id, transcript_id, sep = "|"))
+  } else if (annotation == "UNIPROT") {
+    tab <- left_join(fasta_names, conv, by = "SYMBOL")
+  }
 
   ## Create RII peptide table
   feature_data <- crosstab %>%
     select(Specie) %>%
-    mutate(protein_id = sub("(^.*)@(.*)", "\\1", Specie),
-           ptm_id = sub("(^.*)@(.*)", "\\2", Specie),
-           organism_name = org_name) %>%
-    mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
-    left_join(conv, by=c("ANNOTATION" = annotation)) %>%
-    select(-ANNOTATION) %>%
-    rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID)
+    tidyr::separate(Specie, into = c("protein_id", "ptm_id"),
+                    sep = "@", remove = FALSE) %>%
+    mutate(organism_name = org_name)
+
+  if (annotation == "REFSEQ") {
+    feature_data <- feature_data %>%
+      mutate(ANNOTATION = sub(rgx, grp, protein_id)) %>%
+      left_join(conv, by = c("ANNOTATION" = annotation)) %>%
+      select(-ANNOTATION)
+  } else if (annotation %in% c("GENCODE", "UNIPROT")) {
+    feature_data <- left_join(feature_data, tab, by = "protein_id")
+  }
+
+  feature_data <- dplyr::rename(feature_data,
+                                gene_symbol = SYMBOL,
+                                entrez_id = ENTREZID)
 
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
@@ -411,14 +570,19 @@ make_results_ratio_ph <- function(msnid, masic_data,
            is_contaminant = grepl("Contaminant", protein_id))
 
   results_ratio <- feature_data %>%
-    inner_join(ids, by=c("protein_id", "ptm_id")) %>%
+    inner_join(ids, by = c("protein_id", "ptm_id")) %>%
     mutate(ptm_id = gsub("-", sep, ptm_id)) %>%
-    inner_join(crosstab, by="Specie") %>%
+    inner_join(crosstab, by = "Specie") %>%
     select(-Specie)
+
+  return(results_ratio)
 }
 
-utils::globalVariables(c("flanking_sequence", "redundant_ids", "peptide_score",
-                         "confident_score", "noninferableProteins"))
+utils::globalVariables(
+  c("flanking_sequence", "redundant_ids", "peptide_score",
+    "confident_score", "noninferableProteins", "gene",
+    "feature", "transcript_id")
+)
 
 
 
@@ -428,15 +592,12 @@ utils::globalVariables(c("flanking_sequence", "redundant_ids", "peptide_score",
 assess_redundant_protein_matches <- function(msnid, collapse="|") {
 
   res <- psms(msnid) %>%
-    select(accession, peptide) %>%
+    dplyr::select(accession, peptide) %>%
     distinct() %>%
     group_by(peptide) %>%
     summarize(redundantAccessions = paste(accession, collapse=collapse))
 
-  res <- left_join(psms(msnid), res, by="peptide")
-
-  psms(msnid) <- res
-
+  psms(msnid) <- left_join(psms(msnid), res, by="peptide")
   return(msnid)
 }
 
@@ -449,7 +610,7 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
 
   # assign each accession to its peptide signature
   res <- psms(msnid) %>%
-    select(accession, peptide) %>%
+    dplyr::select(accession, peptide) %>%
     distinct() %>%
     group_by(accession) %>%
     arrange(peptide) %>%
@@ -460,12 +621,9 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
     group_by(peptideSignature) %>%
     summarize(noninferableProteins = paste(accession, collapse=collapse)) %>%
     left_join(res, by="peptideSignature") %>%
-    select(-peptideSignature)
+    dplyr::select(-peptideSignature)
 
-  res <- left_join(psms(msnid), res, by="accession")
-
-  psms(msnid) <- res
-
+  psms(msnid) <- left_join(psms(msnid), res, by = "accession")
   return(msnid)
 }
 

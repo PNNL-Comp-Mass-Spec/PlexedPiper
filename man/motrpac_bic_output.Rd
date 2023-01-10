@@ -17,7 +17,8 @@ make_rii_peptide_gl(
   samples,
   references,
   annotation,
-  org_name = "Rattus norvegicus"
+  org_name = "Rattus norvegicus",
+  fasta_file
 )
 
 make_results_ratio_gl(
@@ -27,7 +28,9 @@ make_results_ratio_gl(
   samples,
   references,
   annotation,
-  org_name = "Rattus norvegicus"
+  org_name = "Rattus norvegicus",
+  sep = "_",
+  fasta_file
 )
 
 make_rii_peptide_ph(
@@ -38,7 +41,8 @@ make_rii_peptide_ph(
   references,
   annotation,
   org_name = "Rattus norvegicus",
-  sep = "_"
+  sep = "_",
+  fasta_file
 )
 
 make_results_ratio_ph(
@@ -49,7 +53,8 @@ make_results_ratio_ph(
   references,
   annotation,
   org_name = "Rattus norvegicus",
-  sep = "_"
+  sep = "_",
+  fasta_file
 )
 
 assess_redundant_protein_matches(msnid, collapse = "|")
@@ -72,9 +77,11 @@ sample names with TMT channels and PlexID}
 describing reference value calculation}
 
 \item{annotation}{(character) format of \code{accessions(msnid)}. Either
-\code{"refseq"} or \code{"uniprot"} (case insensitive).}
+\code{"refseq"}, \code{"uniprot"}, or \code{"gencode"} (case insensitive).}
 
-\item{org_name}{(character) scientific name of organism (e.g. \code{"Homo sapiens"}, \code{"Rattus norvegicus"}, \code{"Mus musculus"}, etc.). Case sensitive.}
+\item{org_name}{(character) scientific name of organism (e.g., \code{"Homo sapiens"}, \code{"Rattus norvegicus"}, \code{"Mus musculus"}, etc.). Case sensitive.}
+
+\item{fasta_file}{(character) Path to FASTA file}
 
 \item{sep}{(character) used to concatenate protein, SiteID, and peptide.}
 
@@ -82,7 +89,8 @@ describing reference value calculation}
 \code{assess_redundant_protein_matches}}
 }
 \description{
-Assembles data in format compliant with BIC requirements.
+Assembles data in format compliant with BIC requirements. Used
+internally by \code{\link[PlexedPiper]{run_plexedpiper}}.
 }
 \details{
 The \code{ratio} and \code{rii} functions require columns "redundantAccessions",
@@ -144,13 +152,15 @@ references <- read_tsv(system.file("extdata/study_design/references.txt",
 results_ratio <- make_results_ratio_gl(msnid, masic_data,
                                        fractions, samples, references,
                                        annotation = "RefSeq",
-                                       org_name = "Rattus norvegicus")
+                                       org_name = "Rattus norvegicus",
+                                       fasta_file = path_to_FASTA)
 head(results_ratio, 10)
 
 rii_peptide <- make_rii_peptide_gl(msnid, masic_data,
                                    fractions, samples, references,
                                    annotation = "RefSeq",
-                                   org_name = "Rattus norvegicus")
+                                   org_name = "Rattus norvegicus",
+                                   fasta_file = path_to_FASTA)
 head(rii_peptide, 10)
 
 # Clean-up cache
