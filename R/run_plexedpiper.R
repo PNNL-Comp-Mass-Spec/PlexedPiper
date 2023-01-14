@@ -198,6 +198,11 @@ run_plexedpiper <- function(msgf_output_folder,
     if (anyDuplicated(names(fst)) != 0) {
       stop("Duplicate FASTA entry names!")
     }
+  } else if (annotation == "UNIPROT") {
+    pttrn <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
+    # Extract middle portion of ID
+    msnid$accession <- sub(pttrn, "\\3", msnid$accession)
+    names(fst) <- sub(pttrn, "\\3", names(fst))
   }
 
   if (verbose) {message("   + Concatenating redundant protein matches")}

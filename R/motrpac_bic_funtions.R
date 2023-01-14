@@ -40,7 +40,7 @@
 #'
 #' @importFrom MSnID fetch_conversion_table parse_FASTA_names
 #' @importFrom dplyr select inner_join left_join mutate %>% case_when rename
-#'   group_by summarize arrange
+#'   group_by summarize arrange across
 #' @importFrom tibble rownames_to_column
 #' @importFrom tidyr separate
 #'
@@ -153,7 +153,9 @@ make_rii_peptide_gl <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature)
+                    protein_id = feature) %>%
+      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
+                              "\\3", protein_id))
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
@@ -182,8 +184,7 @@ make_rii_peptide_gl <- function(msnid,
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       dplyr::select(-ANNOTATION)
   } else if (annotation %in% c("GENCODE", "UNIPROT")) {
-    feature_data <- left_join(feature_data, fasta_names,
-                              by = "protein_id") %>%
+    feature_data <- left_join(feature_data, fasta_names, by = "protein_id") %>%
       left_join(conv, by = "SYMBOL")
   }
 
@@ -253,7 +254,9 @@ make_results_ratio_gl <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature)
+                    protein_id = feature) %>%
+      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
+                              "\\3", protein_id))
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
@@ -280,8 +283,7 @@ make_results_ratio_gl <- function(msnid,
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       select(-ANNOTATION)
   } else if (annotation %in% c("GENCODE", "UNIPROT")) {
-    feature_data <- left_join(feature_data, fasta_names,
-                              by = "protein_id") %>%
+    feature_data <- left_join(feature_data, fasta_names, by = "protein_id") %>%
       left_join(conv, by = "SYMBOL")
   }
 
@@ -364,7 +366,9 @@ make_rii_peptide_ph <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature)
+                    protein_id = feature) %>%
+      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
+                              "\\3", protein_id))
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
@@ -394,8 +398,7 @@ make_rii_peptide_ph <- function(msnid,
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       dplyr::select(-ANNOTATION)
   } else if (annotation %in% c("GENCODE", "UNIPROT")) {
-    feature_data <- left_join(feature_data, fasta_names,
-                              by = "protein_id") %>%
+    feature_data <- left_join(feature_data, fasta_names, by = "protein_id") %>%
       left_join(conv, by = "SYMBOL")
   }
 
@@ -422,8 +425,8 @@ make_rii_peptide_ph <- function(msnid,
 
   rii_peptide <- feature_data %>%
     inner_join(ids, by = c("protein_id", "sequence", "ptm_id")) %>%
-    mutate(ptm_id = gsub("-", sep, ptm_id),
-           ptm_peptide = gsub("-", sep, ptm_peptide)) %>%
+    mutate(across(c(ptm_id, ptm_peptide),
+                  ~ gsub("-(?!\\d{1})", sep, .x, perl = TRUE))) %>%
     inner_join(crosstab, by="Specie") %>%
     select(-Specie)
 
@@ -471,7 +474,9 @@ make_results_ratio_ph <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature)
+                    protein_id = feature) %>%
+      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
+                              "\\3", protein_id))
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
@@ -500,8 +505,7 @@ make_results_ratio_ph <- function(msnid,
       left_join(conv, by = c("ANNOTATION" = annotation)) %>%
       select(-ANNOTATION)
   } else if (annotation %in% c("GENCODE", "UNIPROT")) {
-    feature_data <- left_join(feature_data, fasta_names,
-                              by = "protein_id") %>%
+    feature_data <- left_join(feature_data, fasta_names, by = "protein_id") %>%
       left_join(conv, by = "SYMBOL")
   }
 
@@ -532,7 +536,7 @@ make_results_ratio_ph <- function(msnid,
 
   results_ratio <- feature_data %>%
     inner_join(ids, by = c("protein_id", "ptm_id")) %>%
-    mutate(ptm_id = gsub("-", sep, ptm_id)) %>%
+    mutate(ptm_id = gsub("-(?!\\d{1})", sep, ptm_id, perl = TRUE)) %>%
     inner_join(crosstab, by = "Specie") %>%
     select(-Specie)
 
