@@ -153,9 +153,7 @@ make_rii_peptide_gl <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature) %>%
-      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
-                              "\\3", protein_id))
+                    protein_id = unique_id)
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
@@ -254,9 +252,7 @@ make_results_ratio_gl <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature) %>%
-      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
-                              "\\3", protein_id))
+                    protein_id = unique_id)
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
@@ -366,9 +362,7 @@ make_rii_peptide_ph <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature) %>%
-      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
-                              "\\3", protein_id))
+                    protein_id = unique_id)
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
@@ -474,9 +468,7 @@ make_results_ratio_ph <- function(msnid,
     grp <- "\\3"
     fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
       dplyr::rename(SYMBOL = gene,
-                    protein_id = feature) %>%
-      mutate(protein_id = sub("((sp|tr)\\|)?([^\\|]*)(.*)?",
-                              "\\3", protein_id))
+                    protein_id = unique_id)
     from <- "SYMBOL"
     to <- "ENTREZID"
   } else if (annotation == "GENCODE") {
