@@ -379,11 +379,16 @@ make_rii_peptide_ph <- function(msnid,
   )
 
   ## Create RII peptide table
+  # Some peptides may be ubiquitinated (#) as well as acetylated (@),
+  # so we cannot use tidyr::separate with sep = "@". We use flanking AAs as
+  # anchors for the regex instead.
+  pttrn <- "(^.*)@([A-Z\\-]{1}\\..*\\.[A-Z\\-]{1})@(.*)"
   feature_data <- crosstab %>%
     dplyr::select(Specie) %>%
-    tidyr::separate(Specie, into = c("protein_id", "sequence", "ptm_id"),
-                    sep = "@", remove = FALSE) %>%
-    mutate(ptm_peptide = paste(ptm_id, sequence, sep = sep),
+    mutate(protein_id = sub(pttrn, "\\1", Specie),
+           sequence = sub(pttrn, "\\2", Specie),
+           ptm_id = sub(pttrn, "\\3", Specie),
+           ptm_peptide = paste(ptm_id, sequence, sep = sep),
            organism_name = org_name)
 
   if (annotation == "REFSEQ") {

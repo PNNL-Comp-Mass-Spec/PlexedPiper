@@ -1,3 +1,10 @@
+# PlexedPiper 0.4.1 (2023-02-07)
+
+-   Removed duplicate GENCODE protein IDs from `run_plexedpiper` output. GENCODE IDs are currently only unique when combining the protein (ENSP) and transcript (ENST) IDs. Since there are so few duplicates, we will remove them rather than concatenating these IDs in the "protein_id" column of the output of `make_results_ratio_*` and `make_rii_peptide_*` functions.
+-   Shortened UniProt headers in `run_plexedpiper` output to only use the middle portion of the UniProt IDs.
+-   Bugfix: fixed parsing of crosstab rownames in `make_rii_peptide_ph` when acetylated peptides also contain PTMs denoted by a "\@".
+-   Requires an update to a version of [MSnID](https://github.com/PNNL-Comp-Mass-Spec/MSnID) built on or after 2023-01-26 when column "unique_id" was added to `parse_FASTA_names` output.
+
 # PlexedPiper 0.4.0 (2023-01-09)
 
 -   Updated MoTrPAC BIC functions to extract information from GENCODE FASTA headers and include them as columns in results tables.
