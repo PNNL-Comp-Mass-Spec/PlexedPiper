@@ -321,7 +321,7 @@ with reference for each QuantBlock.</p>
 <p>By convention, the study design tables should be stored in the data
 package folder in DMS.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">study_design_tables</span> <span class="op">&lt;-</span> <span class="fu">get_study_design_by_dataset_package</span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">study_design_tables</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PNNL.DMS.utils/man/read_study_design.html" class="external-link">read_study_design_from_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
 <span><span class="va">fractions</span> <span class="op">&lt;-</span> <span class="va">study_design_tables</span><span class="op">$</span><span class="va">fractions</span></span>
 <span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="va">study_design_tables</span><span class="op">$</span><span class="va">samples</span></span>
 <span><span class="va">references</span> <span class="op">&lt;-</span> <span class="va">study_design_tables</span><span class="op">$</span><span class="va">references</span></span></code></pre></div>
