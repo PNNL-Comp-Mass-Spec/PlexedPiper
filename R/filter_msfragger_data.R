@@ -48,6 +48,7 @@ filter_msfragger_data <- function(msnid,
 
   # Check input
   level <- match.arg(level, choices = c("peptide", "accession", "SiteID"))
+  filtering_criterion <- match.arg(filtering_criterion)
   
   if(level == "SiteID" & !("SiteID" %in% names(msnid)))
      stop("Column 'SiteID' is not in the MSnID object. Please map the PTMs first.")
