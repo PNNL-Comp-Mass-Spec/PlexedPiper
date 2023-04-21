@@ -218,16 +218,16 @@ protein length and use that as a filtering criterion.</p>
 <span><span class="co">## #Spectrum Files:  48 </span></span>
 <span><span class="co">## #PSMs: 480204 at 0.45 % FDR</span></span>
 <span><span class="co">## #peptides: 96637 at 1 % FDR</span></span>
-<span><span class="co">## #accessions: 8140 at 7 % FDR</span></span></code></pre>
+<span><span class="co">## #accessions: 8127 at 7 % FDR</span></span></code></pre>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">msnid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_msgf_data.html">filter_msgf_data_protein_level</a></span><span class="op">(</span><span class="va">msnid</span>, <span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/methods/show.html" class="external-link">show</a></span><span class="op">(</span><span class="va">msnid</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## MSnID object</span></span>
 <span><span class="co">## Working directory: "."</span></span>
 <span><span class="co">## #Spectrum Files:  48 </span></span>
-<span><span class="co">## #PSMs: 398445 at 0.2 % FDR</span></span>
-<span><span class="co">## #peptides: 81353 at 0.35 % FDR</span></span>
-<span><span class="co">## #accessions: 5371 at 1 % FDR</span></span></code></pre>
+<span><span class="co">## #PSMs: 398737 at 0.18 % FDR</span></span>
+<span><span class="co">## #peptides: 81623 at 0.31 % FDR</span></span>
+<span><span class="co">## #accessions: 5483 at 0.99 % FDR</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="inference-of-parsimonious-protein-set">Inference of parsimonious protein set<a class="anchor" aria-label="anchor" href="#inference-of-parsimonious-protein-set"></a>
@@ -249,9 +249,9 @@ to alphanumeric order.</p>
 <pre><code><span><span class="co">## MSnID object</span></span>
 <span><span class="co">## Working directory: "."</span></span>
 <span><span class="co">## #Spectrum Files:  48 </span></span>
-<span><span class="co">## #PSMs: 302465 at 0.23 % FDR</span></span>
-<span><span class="co">## #peptides: 73079 at 0.34 % FDR</span></span>
-<span><span class="co">## #accessions: 4822 at 0.96 % FDR</span></span></code></pre>
+<span><span class="co">## #PSMs: 302729 at 0.22 % FDR</span></span>
+<span><span class="co">## #peptides: 73332 at 0.31 % FDR</span></span>
+<span><span class="co">## #accessions: 4920 at 0.96 % FDR</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="remove-decoy-accessions">Remove decoy accessions<a class="anchor" aria-label="anchor" href="#remove-decoy-accessions"></a>
@@ -503,7 +503,7 @@ protein IDs while aggregating to peptide level we suggest
 <span>                                   <span class="va">aggregation_level</span>, </span>
 <span>                                   <span class="va">fractions</span>, <span class="va">samples</span>, <span class="va">references</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">quant_cross_tab</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 4764   18</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 4859   18</span></span></code></pre>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">quant_cross_tab</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              R_01        R_02       R_03         R_04       R_05       R_06</span></span>
