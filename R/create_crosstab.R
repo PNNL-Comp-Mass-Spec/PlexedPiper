@@ -79,6 +79,12 @@ create_crosstab <- function(msnid,
                             samples,
                             references)
 {
+
+   # make sure there are columns Dataset and Scan corresponding to 
+   # spectrumFile and spectrumID
+   msnid$Dataset <- msnid$spectrumFile # testcomment
+   msnid$Scan <- msnid$spectrumID
+
   # Common datasets
   cd <- sort(intersect(msnid$Dataset, reporter_intensities$Dataset))
 
