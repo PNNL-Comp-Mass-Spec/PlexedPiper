@@ -42,7 +42,6 @@
 #' @importFrom dplyr select inner_join left_join mutate %>% case_when rename
 #'   group_by summarize arrange across
 #' @importFrom tibble rownames_to_column
-#' @importFrom tidyr separate
 #'
 #' @name motrpac_bic_output
 #'
@@ -172,8 +171,11 @@ make_rii_peptide_gl <- function(msnid,
   # Feature data
   feature_data <- crosstab %>%
     dplyr::select(Specie) %>%
-    tidyr::separate(col = Specie, into = c("protein_id", "sequence"),
-                    sep = "@", remove = FALSE) %>%
+    ## Old code: does not work if PTMs are denoted by "@"
+    # tidyr::separate(col = Specie, into = c("protein_id", "sequence"),
+    #                 sep = "@", remove = FALSE) %>%
+    mutate(protein_id = sub("(^[^@]*)@(.*)", "\\1", Specie),
+           sequence = sub("(^[^@]*)@(.*)", "\\2", Specie)) %>%
     mutate(organism_name = org_name)
 
   if (annotation == "REFSEQ") {
@@ -492,8 +494,11 @@ make_results_ratio_ph <- function(msnid,
   ## Create RII peptide table
   feature_data <- crosstab %>%
     select(Specie) %>%
-    tidyr::separate(Specie, into = c("protein_id", "ptm_id"),
-                    sep = "@", remove = FALSE) %>%
+    ## Old code: does not work if PTMs are denoted by "@"
+    # tidyr::separate(Specie, into = c("protein_id", "ptm_id"),
+    #                 sep = "@", remove = FALSE) %>%
+    mutate(protein_id = sub("(^[^@]*)@(.*)", "\\1", Specie),
+           ptm_id = sub("(^[^@]*)@(.*)", "\\2", Specie)) %>%
     mutate(organism_name = org_name)
 
   if (annotation == "REFSEQ") {
