@@ -13,6 +13,7 @@
 #'
 #' @importFrom readr read_tsv
 #' @importFrom dplyr filter select rename %>%
+#' @importFrom data.table data.table
 #'
 #' @export read_study_design
 #'
@@ -63,10 +64,14 @@ read_study_design <- function(path_to_study_design,
 
     required_cols_i <- required_cols[[name_i]]
     col_in_tbl <- required_cols_i %in% colnames(tbl)
+
     if (!all(col_in_tbl)) {
-      message(sprintf("\nRequired column(s) not found in the '%s' file: ", pttrn),
+      message(sprintf("\nRequired column(s) not found in the '%s' file: ",
+                      pttrn),
               paste(required_cols_i[!col_in_tbl], collapse = ", "))
-      stop(sprintf("Incorrect column names or missing columns in the '%s' study design table.", name_i))
+      stop(sprintf(
+        "Incorrect column names or missing columns in the '%s' study design table.",
+        name_i))
     }
 
     return(tbl)
@@ -74,19 +79,36 @@ read_study_design <- function(path_to_study_design,
 
   names(study_design) <- names(required_cols)
 
-
   # Check for duplicates
   if (any(duplicated(study_design$fractions$Dataset))) {
-    stop(sprintf("Duplicate datasets in '%sfractions.txt'"))
+    stop(sprintf("Duplicate Dataset entries in '%sfractions.txt'", prefix))
   }
-  if (any(duplicated(study_design$samples$MeasurementName[
-    !is.na(study_design$samples$MeasurementName)]))) {
-    stop("Duplicate sample names in '%ssamples.txt'")
+  if (any(duplicated(study_design$samples$MeasurementName,
+                     incomparables = NA))) {
+    stop(sprintf("Duplicate MeasurementName entries in '%ssamples.txt'",
+                 prefix))
   }
   if (!setequal(study_design$fractions$PlexID,
                 study_design$samples$PlexID)) {
-    stop(sprintf("Plex IDs in '%sfractions.txt' and '%ssamples.txt' do not match.",
-         prefix, prefix))
+    stop(sprintf(
+      "Plex IDs in '%sfractions.txt' and '%ssamples.txt' do not match.",
+      prefix, prefix))
+  }
+
+  # Check for valid TMT layout
+  # Set reporter_converter to prevent "no visible binding" note
+  reporter_converter <- PlexedPiper::reporter_converter
+  for (i in seq_along(reporter_converter)) {
+    if (setequal(study_design$samples$ReporterName,
+                 reporter_converter[[i]]$ReporterIon)) {
+      converter <- data.table(reporter_converter[[i]])
+      break
+    }
+  }
+
+  if (missing(converter)) {
+    stop(paste("No reporter ion converter tables match reporter ions in",
+               "samples$ReporterName"))
   }
 
   return(study_design)
