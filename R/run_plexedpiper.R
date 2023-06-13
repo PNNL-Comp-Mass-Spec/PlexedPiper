@@ -298,7 +298,8 @@ run_plexedpiper <- function(msgf_output_folder,
                   file      = file.path(output_folder, filename),
                   sep       = "\t",
                   row.names = FALSE,
-                  quote     = FALSE)
+                  quote     = FALSE,
+                  na        = "")
       if(verbose) {
         message("- RII file save to ", file.path(output_folder, filename))
       }
@@ -308,7 +309,8 @@ run_plexedpiper <- function(msgf_output_folder,
                   file      = file.path(output_folder, filename),
                   sep       = "\t",
                   row.names = FALSE,
-                  quote     = FALSE)
+                  quote     = FALSE,
+                  na        = "")
       if(verbose) {
         message("- RATIO file save to ", file.path(output_folder, filename))
       }
@@ -316,7 +318,7 @@ run_plexedpiper <- function(msgf_output_folder,
   }
   if (save_env) {
     fileenv <- paste0(file_prefix, "-env.RData")
-    save.image(file = file.path(output_folder, fileenv))
+    save.image(file = file.path(output_folder, fileenv), compress = TRUE)
     if(verbose) {
       message("- R environment saved to ", file.path(output_folder, fileenv))
     }
