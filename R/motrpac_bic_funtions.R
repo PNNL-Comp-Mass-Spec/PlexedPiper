@@ -409,13 +409,17 @@ make_rii_peptide_ph <- function(msnid,
 
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
-    select(protein_id = accession,
-           sequence = peptide,
-           ptm_id = SiteID,
-           flanking_sequence = sequenceWindow,
-           redundant_ids = redundantAccessions,
-           MSGFDB_SpecEValue,
-           maxAScore) %>%
+    dplyr::select(protein_id = accession,
+                  sequence = peptide,
+                  ptm_id = SiteID,
+                  flanking_sequence = sequenceWindow,
+                  redundant_ids = redundantAccessions,
+                  MSGFDB_SpecEValue,
+                  any_of(c("maxAScore"))) %>%
+    distinct() %>%
+    # Redox results do not use AScore, so we need to account for that
+    rowwise() %>%
+    mutate(maxAScore = ifelse("maxAScore" %in% names(.), maxAScore, NA)) %>%
     group_by(protein_id, sequence, ptm_id,
              flanking_sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue),
@@ -517,15 +521,20 @@ make_results_ratio_ph <- function(msnid,
 
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
-    select(protein_id = accession,
-           sequence = peptide,
-           ptm_id = SiteID,
-           redundant_ids = noninferableProteins,
-           flanking_sequence = sequenceWindow,
-           MSGFDB_SpecEValue,
-           maxAScore) %>%
+    dplyr::select(protein_id = accession,
+                  sequence = peptide,
+                  ptm_id = SiteID,
+                  redundant_ids = noninferableProteins,
+                  flanking_sequence = sequenceWindow,
+                  MSGFDB_SpecEValue,
+                  any_of(c("maxAScore"))) %>%
+    distinct() %>%
+    # Redox results do not use AScore, so we need to account for that
+    rowwise() %>%
+    mutate(maxAScore = ifelse("maxAScore" %in% names(.), maxAScore, NA)) %>%
     # group at peptide level to calculate peptide score, confident score
-    group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_ids) %>%
+    group_by(protein_id, sequence, ptm_id,
+             flanking_sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue),
               confident_score = max(maxAScore)) %>%
     # regroup at siteID level and recalculate ptm score
@@ -533,7 +542,8 @@ make_results_ratio_ph <- function(msnid,
     summarize(ptm_score = min(peptide_score),
               confident_score = max(confident_score)) %>%
     mutate(confident_site = case_when(confident_score >= 17 ~ TRUE,
-                                      confident_score < 17 ~ FALSE),
+                                      confident_score < 17 ~ FALSE,
+                                      TRUE ~ NA),
            is_contaminant = grepl("Contaminant", protein_id))
 
   results_ratio <- feature_data %>%
@@ -583,7 +593,7 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
   res <- res %>%
     group_by(peptideSignature) %>%
     summarize(noninferableProteins = paste(accession, collapse=collapse)) %>%
-    left_join(res, by="peptideSignature") %>%
+    left_join(res, by="peptideSignature", multiple = "all") %>%
     dplyr::select(-peptideSignature)
 
   psms(msnid) <- left_join(psms(msnid), res, by = "accession")
