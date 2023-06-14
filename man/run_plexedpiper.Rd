@@ -29,8 +29,8 @@ run_plexedpiper(
 \item{msgf_output_folder}{(character) Path to MS-GF+ results folder(s).}
 
 \item{fasta_file}{(character) Path to FASTA file. If multiple MS-GF+ results
-folders are provided, all should be searched against the same
-protein database.}
+folders are provided, all should be searched against the same protein
+database.}
 
 \item{masic_output_folder}{(character) MASIC results folder(s).}
 
@@ -91,7 +91,7 @@ and Ratio Results tables used by the MoTrPAC Bioinformatics Center (BIC).
 }
 \examples{
 \dontrun{
-# Example with pseudo-paths
+# Phosphoproteomics example with pseudo-paths
 results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
                            fasta_file  = "~/path/to/fasta/sequence.fasta",
                            masic_output_folder = "~/path/to/masic-results/",
@@ -108,4 +108,5 @@ results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
                            return_results = TRUE,
                            verbose = TRUE)
 }
+
 }
