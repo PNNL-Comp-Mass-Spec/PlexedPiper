@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/workflows/R-CMD-check/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions)
+[![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 
