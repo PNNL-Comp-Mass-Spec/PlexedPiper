@@ -100,13 +100,13 @@ read_study_design <- function(path_to_study_design,
   reporter_converter <- PlexedPiper::reporter_converter
   for (i in seq_along(reporter_converter)) {
     if (setequal(study_design$samples$ReporterName,
-                 reporter_converter[[i]]$ReporterIon)) {
+                 reporter_converter[[i]]$ReporterName)) {
       converter <- data.table(reporter_converter[[i]])
       break
     }
   }
 
-  if (missing(converter)) {
+  if (!exists("converter")) {
     stop(paste("No reporter ion converter tables match reporter ions in",
                "samples$ReporterName"))
   }
