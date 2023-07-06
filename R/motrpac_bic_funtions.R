@@ -40,7 +40,7 @@
 #'
 #' @importFrom MSnID fetch_conversion_table parse_FASTA_names
 #' @importFrom dplyr select inner_join left_join mutate %>% case_when rename
-#'   group_by summarize arrange across
+#'   group_by summarize arrange across any_of rowwise
 #' @importFrom tibble rownames_to_column
 #'
 #' @name motrpac_bic_output
@@ -144,25 +144,28 @@ make_rii_peptide_gl <- function(msnid,
   from <- annotation
   to <- c("SYMBOL", "ENTREZID")
 
-  if (annotation == "REFSEQ") {
-    rgx <- "(^.*)\\.\\d+"
-    grp <- "\\1"
-  } else if (annotation == "UNIPROT") {
-    rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
-    grp <- "\\3"
-    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
-      dplyr::rename(SYMBOL = gene,
-                    protein_id = unique_id)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+).*"
-    grp <- "\\1"
-    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
-      dplyr::rename(SYMBOL = gene)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  }
+  switch(annotation,
+         REFSEQ = {
+           rgx <- "(^.*)\\.\\d+"
+           grp <- "\\1"
+         },
+         UNIPROT = {
+           rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
+           grp <- "\\3"
+           fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+             dplyr::rename(SYMBOL = gene,
+                           protein_id = unique_id)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         },
+         GENCODE = {
+           rgx <- "(ENSP[^\\|]+).*"
+           grp <- "\\1"
+           fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+             dplyr::rename(SYMBOL = gene)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         })
 
   conv <- suppressWarnings(
     fetch_conversion_table(org_name, from = from, to = to)
@@ -171,9 +174,6 @@ make_rii_peptide_gl <- function(msnid,
   # Feature data
   feature_data <- crosstab %>%
     dplyr::select(Specie) %>%
-    ## Old code: does not work if PTMs are denoted by "@"
-    # tidyr::separate(col = Specie, into = c("protein_id", "sequence"),
-    #                 sep = "@", remove = FALSE) %>%
     mutate(protein_id = sub("(^[^@]*)@(.*)", "\\1", Specie),
            sequence = sub("(^[^@]*)@(.*)", "\\2", Specie)) %>%
     mutate(organism_name = org_name)
@@ -217,7 +217,7 @@ utils::globalVariables(
     "protein_id", "ANNOTATION", "SYMBOL", "ENTREZID",
     "accession", "peptide", "noninferableProteins",
     "MSGFDB_SpecEValue", "redundant_ids", "gene",
-    "feature", "transcript_id")
+    "feature", "transcript_id", "unique_id")
 )
 
 
@@ -244,27 +244,30 @@ make_results_ratio_gl <- function(msnid,
     rownames_to_column("protein_id")
 
   ## Add feature annotations --------------------------------------------
-  from <- annotation
-  to <- c("SYMBOL", "ENTREZID")
-  if (annotation == "REFSEQ") {
-    rgx <- "(^.*)\\.\\d+"
-    grp <- "\\1"
-  } else if (annotation == "UNIPROT") {
-    rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
-    grp <- "\\3"
-    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
-      dplyr::rename(SYMBOL = gene,
-                    protein_id = unique_id)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+).*"
-    grp <- "\\1"
-    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
-      dplyr::rename(SYMBOL = gene)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  }
+  switch(annotation,
+         REFSEQ = {
+           rgx <- "(^.*)\\.\\d+"
+           grp <- "\\1"
+           from <- "REFSEQ"
+           to <- c("SYMBOL", "ENTREZID")
+         },
+         UNIPROT = {
+           rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
+           grp <- "\\3"
+           fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+             dplyr::rename(SYMBOL = gene,
+                           protein_id = unique_id)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         },
+         GENCODE = {
+           rgx <- "(ENSP[^\\|]+).*"
+           grp <- "\\1"
+           fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+             dplyr::rename(SYMBOL = gene)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         })
 
   conv <- suppressWarnings(
     fetch_conversion_table(org_name, from = from, to = to)
@@ -312,8 +315,10 @@ make_results_ratio_gl <- function(msnid,
   return(results_ratio)
 }
 
-utils::globalVariables(c("noninferableProteins", "percentAACoverage",
-                         "percent_coverage", "feature", "transcript_id"))
+utils::globalVariables(
+  c("noninferableProteins", "percentAACoverage", "percent_coverage",
+    "feature", "transcript_id")
+)
 
 
 #' @export
@@ -341,8 +346,6 @@ make_rii_peptide_ph <- function(msnid,
     mutate(Reference = 1)
 
   ## Create Crosstab
-  annotation <- toupper(annotation)
-
   aggregation_level <- c("accession", "peptide", "SiteID")
   crosstab <- create_crosstab(msnid,
                               masic_data,
@@ -354,27 +357,31 @@ make_rii_peptide_ph <- function(msnid,
     rownames_to_column("Specie")
 
   ## Fetch conversion table -----
-  from <- annotation
-  to <- c("SYMBOL", "ENTREZID")
-  if (annotation == "REFSEQ") {
-    rgx <- "(^.*)\\.\\d+"
-    grp <- "\\1"
-  } else if (annotation == "UNIPROT") {
-    rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
-    grp <- "\\3"
-    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
-      dplyr::rename(SYMBOL = gene,
-                    protein_id = unique_id)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+).*"
-    grp <- "\\1"
-    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
-      dplyr::rename(SYMBOL = gene)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  }
+  annotation <- toupper(annotation)
+  switch(annotation,
+         REFSEQ = {
+           rgx <- "(^.*)\\.\\d+"
+           grp <- "\\1"
+           from <- "REFSEQ"
+           to <- c("SYMBOL", "ENTREZID")
+         },
+         UNIPROT = {
+           rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
+           grp <- "\\3"
+           fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+             dplyr::rename(SYMBOL = gene,
+                           protein_id = unique_id)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         },
+         GENCODE = {
+           rgx <- "(ENSP[^\\|]+).*"
+           grp <- "\\1"
+           fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+             dplyr::rename(SYMBOL = gene)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         })
 
   conv <- suppressWarnings(
     fetch_conversion_table(org_name, from = from, to = to)
@@ -439,7 +446,7 @@ make_rii_peptide_ph <- function(msnid,
 }
 
 utils::globalVariables(
-  c("ptm_peptide", "MeasurementName", "ReporterAlias",
+  c(".", "ptm_peptide", "MeasurementName", "ReporterAlias",
     "PlexID", "Specie", "ptm_id", "protein_id",
     "ANNOTATION", "SYMBOL", "ENTREZID", "accession",
     "peptide", "SiteID", "sequenceWindow",
@@ -468,28 +475,31 @@ make_results_ratio_ph <- function(msnid,
 
   ## Fetch conversation table
   annotation <- toupper(annotation)
-  from <- annotation
-  to <- c("SYMBOL", "ENTREZID")
 
-  if (annotation == "REFSEQ") {
-    rgx <- "(^.*)\\.\\d+"
-    grp <- "\\1"
-  } else if (annotation == "UNIPROT") {
-    rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
-    grp <- "\\3"
-    fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
-      dplyr::rename(SYMBOL = gene,
-                    protein_id = unique_id)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  } else if (annotation == "GENCODE") {
-    rgx <- "(ENSP[^\\|]+).*"
-    grp <- "\\1"
-    fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
-      dplyr::rename(SYMBOL = gene)
-    from <- "SYMBOL"
-    to <- "ENTREZID"
-  }
+  switch(annotation,
+         REFSEQ = {
+           rgx <- "(^.*)\\.\\d+"
+           grp <- "\\1"
+           from <- "REFSEQ"
+           to <- c("SYMBOL", "ENTREZID")
+         },
+         UNIPROT = {
+           rgx <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
+           grp <- "\\3"
+           fasta_names <- parse_FASTA_names(fasta_file, "uniprot") %>%
+             dplyr::rename(SYMBOL = gene,
+                           protein_id = unique_id)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         },
+         GENCODE = {
+           rgx <- "(ENSP[^\\|]+).*"
+           grp <- "\\1"
+           fasta_names <- parse_FASTA_names(fasta_file, "gencode") %>%
+             dplyr::rename(SYMBOL = gene)
+           from <- "SYMBOL"
+           to <- "ENTREZID"
+         })
 
   conv <- suppressWarnings(
     fetch_conversion_table(org_name, from = from, to = to)
@@ -498,9 +508,6 @@ make_results_ratio_ph <- function(msnid,
   ## Create RII peptide table
   feature_data <- crosstab %>%
     select(Specie) %>%
-    ## Old code: does not work if PTMs are denoted by "@"
-    # tidyr::separate(Specie, into = c("protein_id", "ptm_id"),
-    #                 sep = "@", remove = FALSE) %>%
     mutate(protein_id = sub("(^[^@]*)@(.*)", "\\1", Specie),
            ptm_id = sub("(^[^@]*)@(.*)", "\\2", Specie)) %>%
     mutate(organism_name = org_name)
@@ -556,9 +563,9 @@ make_results_ratio_ph <- function(msnid,
 }
 
 utils::globalVariables(
-  c("flanking_sequence", "redundant_ids", "peptide_score",
+  c(".", "flanking_sequence", "redundant_ids", "peptide_score",
     "confident_score", "noninferableProteins", "gene",
-    "feature", "transcript_id")
+    "feature", "transcript_id", "unique_id")
 )
 
 
