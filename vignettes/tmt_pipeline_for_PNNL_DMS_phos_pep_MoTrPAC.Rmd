@@ -78,7 +78,7 @@ newly suggested locations. Importantly it contains `AScore` column that
 signifies the confidence of PTM assingment. `AScore > 17` is considered 
 confident.
 ```{r ascore}
-ascore <- get_AScore_results(data_package_num)
+ascore <- read_AScore_results_from_DMS(data_package_num)
 msnid <- best_PTM_location_by_ascore(msnid, ascore)
 ```
 
