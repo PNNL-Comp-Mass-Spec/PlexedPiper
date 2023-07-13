@@ -30,7 +30,7 @@ Version for PNNL DMS.
     
     <a class="navbar-brand me-2" href="../index.html">PlexedPiper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,7 +100,7 @@ Version for PNNL DMS.
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pnnl-comp-mass-spec.github.io/PlexedPiper/">PlexedPiper</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">PNNL.DMS.utils</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/PNNL-Comp-Mass-Spec/PNNL.DMS.utils/" class="external-link">PNNL.DMS.utils</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">MSnID</span><span class="op">)</span></span></code></pre></div>
 <p><code>PlexedPiper</code> is the main library for the pipeline.
 <code>MSnID</code> package is a flexible way of handling MS/MS
@@ -118,7 +118,7 @@ compile if there is now access to PNNL DMS.</p>
 <code class="sourceCode R"><span><span class="va">data_package_num</span> <span class="op">&lt;-</span> <span class="fl">3606</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># if there is no connection to PNNL DMS, vignette is not compiled</span></span>
-<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/pkg/PNNL.DMS.utils/man/pnnl_dms_utils.html" class="external-link">is_PNNL_DMS_connection_successful</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://pnnl-comp-mass-spec.github.io/PNNL.DMS.utils/reference/pnnl_dms_utils.html" class="external-link">is_PNNL_DMS_connection_successful</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>   <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"There is no connection to PNNL DMS. This code in this vignette won't be evaluated."</span><span class="op">)</span></span>
 <span>   <span class="fu">knitr</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/knitr/man/opts_chunk.html" class="external-link">opts_chunk</a></span><span class="op">$</span><span class="fu">set</span><span class="op">(</span>eval <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
@@ -133,7 +133,7 @@ compile if there is now access to PNNL DMS.</p>
 are collated together and the resulting <code>data.frame</code> used to
 create MSnID object.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">msnid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PNNL.DMS.utils/man/read_msgf_data_from_DMS.html" class="external-link">read_msgf_data_from_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">msnid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pnnl-comp-mass-spec.github.io/PNNL.DMS.utils/reference/read_msgf_data_from_DMS.html" class="external-link">read_msgf_data_from_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/methods/show.html" class="external-link">show</a></span><span class="op">(</span><span class="va">msnid</span><span class="op">)</span></span></code></pre></div>
 <p>This <code>MSnID</code> methods corrects for isotope selection error.
 Occasionally, instrument selects not the lightest or monoisotopic peak,
@@ -179,7 +179,7 @@ to count the number of peptide identifications per protein or protein
 sequence coverage with accessions switched from RefSeq to gene
 symbols.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">path_to_FASTA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PNNL.DMS.utils/man/pnnl_dms_utils.html" class="external-link">path_to_FASTA_used_by_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">path_to_FASTA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pnnl-comp-mass-spec.github.io/PNNL.DMS.utils/reference/pnnl_dms_utils.html" class="external-link">path_to_FASTA_used_by_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
 <span><span class="va">path_to_FASTA_gene</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/remap_accessions_fasta.html">remap_accessions_refseq_to_gene_fasta</a></span><span class="op">(</span></span>
 <span>   <span class="va">path_to_FASTA</span>,</span>
 <span>   organism_name <span class="op">=</span> <span class="st">"Rattus norvegicus"</span></span>
@@ -243,7 +243,7 @@ The other words 1 - InterferenceScore is due to co-isolated species that
 have similar elution time and parent ion m/z. S/N at reporter level is
 the metric that computed by Thermo software.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">masic_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PNNL.DMS.utils/man/read_masic_data_from_DMS.html" class="external-link">read_masic_data_from_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span>, </span>
+<code class="sourceCode R"><span><span class="va">masic_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pnnl-comp-mass-spec.github.io/PNNL.DMS.utils/reference/read_masic_data_from_DMS.html" class="external-link">read_masic_data_from_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span>, </span>
 <span>                                       interference_score<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">masic_data</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -321,7 +321,7 @@ with reference for each QuantBlock.</p>
 <p>By convention, the study design tables should be stored in the data
 package folder in DMS.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">study_design_tables</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PNNL.DMS.utils/man/read_study_design.html" class="external-link">read_study_design_from_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">study_design_tables</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pnnl-comp-mass-spec.github.io/PNNL.DMS.utils/reference/read_study_design.html" class="external-link">read_study_design_from_DMS</a></span><span class="op">(</span><span class="va">data_package_num</span><span class="op">)</span></span>
 <span><span class="va">fractions</span> <span class="op">&lt;-</span> <span class="va">study_design_tables</span><span class="op">$</span><span class="va">fractions</span></span>
 <span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="va">study_design_tables</span><span class="op">$</span><span class="va">samples</span></span>
 <span><span class="va">references</span> <span class="op">&lt;-</span> <span class="va">study_design_tables</span><span class="op">$</span><span class="va">references</span></span></code></pre></div>

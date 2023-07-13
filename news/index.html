@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">PlexedPiper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,6 +62,12 @@ Version for PNNL DMS.
       <small>Source: <a href="https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.2" id="plexedpiper-042-2023-07-06">PlexedPiper 0.4.2 (2023-07-06)<a class="anchor" aria-label="anchor" href="#plexedpiper-042-2023-07-06"></a></h2>
+<ul><li>Update <code>run_plexedpiper</code> to process redox proteomics data.</li>
+<li>Add more robust checks for <code>read_study_design</code> output.</li>
+<li>Set minimum MSnID version to 1.25.2, though this does not prevent installation of an incorrect version of MSnID from Bioconductor, since the version number on Bioconductor is higher.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="plexedpiper-041-2023-02-07">PlexedPiper 0.4.1 (2023-02-07)<a class="anchor" aria-label="anchor" href="#plexedpiper-041-2023-02-07"></a></h2>
 <ul><li>Removed duplicate GENCODE protein IDs from <code>run_plexedpiper</code> output. GENCODE IDs are currently only unique when combining the protein (ENSP) and transcript (ENST) IDs. Since there are so few duplicates, we will remove them rather than concatenating these IDs in the “protein_id” column of the output of <code>make_results_ratio_*</code> and <code>make_rii_peptide_*</code> functions.</li>
