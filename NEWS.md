@@ -1,3 +1,9 @@
+# PlexedPiper 0.4.2 (2023-07-06)
+
+-   Update `run_plexedpiper` to process redox proteomics data.
+-   Add more robust checks for `read_study_design` output.
+-   Set minimum MSnID version to 1.25.2, though this does not prevent installation of an incorrect version of MSnID from Bioconductor, since the version number on Bioconductor is higher.
+
 # PlexedPiper 0.4.1 (2023-02-07)
 
 -   Removed duplicate GENCODE protein IDs from `run_plexedpiper` output. GENCODE IDs are currently only unique when combining the protein (ENSP) and transcript (ENST) IDs. Since there are so few duplicates, we will remove them rather than concatenating these IDs in the "protein_id" column of the output of `make_results_ratio_*` and `make_rii_peptide_*` functions.

@@ -6,8 +6,8 @@
 #'
 #' @param msgf_output_folder (character) Path to MS-GF+ results folder(s).
 #' @param fasta_file (character) Path to FASTA file. If multiple MS-GF+ results
-#'   folders are provided, all should be searched against the same
-#'   protein database.
+#'   folders are provided, all should be searched against the same protein
+#'   database.
 #' @param masic_output_folder (character) MASIC results folder(s).
 #' @param ascore_output_folder (character) AScore results folder(s).
 #' @param proteomics (character) Either "pr" - proteomics, "ph" -
@@ -44,7 +44,6 @@
 #' @return (list) If `return_results` is `TRUE`, it returns list with ratio and
 #'   RII data frames.
 #'
-#'
 #' @md
 #'
 #' @importFrom Biostrings readAAStringSet
@@ -52,13 +51,12 @@
 #' @importFrom MSnID psms MSnID compute_accession_coverage
 #'   correct_peak_selection extract_sequence_window
 #'   infer_parsimonious_accessions map_mod_sites
-#' @importFrom dplyr %>% full_join select mutate filter pull
-#' @importFrom tidyselect where
+#' @importFrom dplyr %>% full_join select mutate filter pull case_when where
 #' @importFrom data.table rbindlist
 #' @importFrom purrr reduce map
 #'
 #' @examples \dontrun{
-#' # Example with pseudo-paths
+#' # Phosphoproteomics example with pseudo-paths
 #' results <- run_plexedpiper(msgf_output_folder = "~/path/to/msgfplus/",
 #'                            fasta_file  = "~/path/to/fasta/sequence.fasta",
 #'                            masic_output_folder = "~/path/to/masic-results/",
@@ -75,6 +73,7 @@
 #'                            return_results = TRUE,
 #'                            verbose = TRUE)
 #' }
+#'
 #' @export
 
 
@@ -97,12 +96,43 @@ run_plexedpiper <- function(msgf_output_folder,
                             return_results = FALSE,
                             verbose = TRUE)
 {
+  on.exit(invisible(gc()))
+
+  # Check input
   annotation <- toupper(annotation)
   annotation <- match.arg(annotation,
                           choices = c("REFSEQ", "UNIPROT", "GENCODE"))
+  # global proteomics, phosphorylation, acetylation, ubiquitination,
+  # reduction/oxidation (redox)
+  proteomics <- match.arg(proteomics,
+                          choices = c("pr", "ph", "ac", "ub", "ox"))
 
-  if( is.null(write_results_to_file) & is.null(return_results) ){
-    stop("\nProvide either <write_results_to_file = TRUE> or <return_results = TRUE> or both. Both cannot be FALSE.")
+  require_ascore <- proteomics %in% c("ph", "ac", "ub")
+  if (require_ascore & missing(ascore_output_folder)) {
+    stop("ascore_output_folder not provided.")
+  }
+
+  if (proteomics != "pr") {
+    if (is.null(global_results)) {
+      if (verbose) {
+        warning("Reference global proteomics dataset (global_results) not provided.")
+      }
+    } else {
+      if (!file.exists(global_results)) {
+        stop("global_results file not found.")
+      }
+    }
+  }
+
+  if (is.null(file_prefix)) {
+    file_prefix <- paste0("MSGFPLUS_", toupper(proteomics))
+    if(!is.null(global_results)){
+      file_prefix <- paste0(file_prefix, "-ip")
+    }
+  }
+
+  if (all(is.null(c(write_results_to_file, return_results)))) {
+    stop("\nAt least write_results_to_file or return_results must be TRUE.")
   }
 
   if (verbose) {
@@ -110,13 +140,6 @@ run_plexedpiper <- function(msgf_output_folder,
     message("- Proteomics experiment: \"", proteomics, "\"")
     message("- Species: \"", species, "\"")
     message("- Annotation: \"", annotation, "\"")
-  }
-
-  if(is.null(file_prefix)){
-    file_prefix <- paste0("MSGFPLUS_", toupper(proteomics))
-    if(!is.null(global_results)){
-      file_prefix <- paste0(file_prefix,"-ip")
-    }
   }
 
   # Data loading
@@ -133,19 +156,15 @@ run_plexedpiper <- function(msgf_output_folder,
   }) %>%
     rbindlist(fill = TRUE)
 
-  if (!is.null(ascore_output_folder)) {
-    ascore <- map(ascore_output_folder, read_AScore_results) %>%
-      rbindlist(fill = TRUE)
-  }
+  invisible(gc())
 
   if (verbose) {message("- Filtering MASIC results.")}
   masic_data <- map(masic_output_folder, function(masic_folder) {
     read_masic_data(masic_folder, interference_score = TRUE) %>%
-      filter_masic_data(0.5, 0)
+      filter_masic_data(interference_score_threshold = 0.5, s2n_threshold = 0)
   })
 
-  fst <- Biostrings::readAAStringSet(fasta_file)
-  names(fst) <- sub(" .*", "", names(fst)) # extract first word
+  invisible(gc())
 
   if (verbose) {message("- Filtering MS-GF+ results.")}
   if (proteomics == "pr") {
@@ -153,24 +172,39 @@ run_plexedpiper <- function(msgf_output_folder,
     msnid <- correct_peak_selection(msnid)
   }
 
-  if (proteomics != "pr") {
+  if (require_ascore) {
     if (verbose) {message("   + Select best PTM location by AScore")}
+    ascore <- map(ascore_output_folder, read_AScore_results) %>%
+      rbindlist(fill = TRUE)
     msnid <- best_PTM_location_by_ascore(msnid, ascore)
+  }
 
-    if (verbose) message("   + Apply PTM filter")
-    if (proteomics == "ph") {
-      reg.expr <- "grepl('\\\\*', peptide)"
-    } else if (proteomics == "ac") {
-      reg.expr <- "grepl('#', peptide)"
-    } else if (proteomics == "ub") {
-      msnid$peptide <- gsub("@", "#", msnid$peptide)
-      reg.expr <- "grepl('#', peptide)"
-    }
+  if (proteomics != "pr") {
+    if (verbose) {message("   + Apply PTM filter")}
+    switch(proteomics,
+           ph = {
+             reg.expr <- "grepl('\\\\*', peptide)"
+           },
+           ac = {
+             reg.expr <- "grepl('#', peptide)"
+           },
+           ub = {
+             # "@" and "#" both mean ubiquitination
+             msnid$peptide <- gsub("@", "#", msnid$peptide)
+             reg.expr <- "grepl('#', peptide)"
+           },
+           ox = {
+             # "@" and "#" do not mean the same thing, so we cannot replace
+             # the former with the latter.
+             reg.expr <- "grepl('\\\\@', peptide)"
+           })
     msnid <- apply_filter(msnid, reg.expr)
   }
 
   if (verbose) {message("   + Peptide-level FDR filter")}
   msnid <- filter_msgf_data(msnid, level = "peptide", fdr.max = 0.01)
+
+  invisible(gc())
 
   if (proteomics == "pr") {
     if (verbose) {message("   + Protein-level FDR filter")}
@@ -181,29 +215,39 @@ run_plexedpiper <- function(msgf_output_folder,
   if(verbose) {message("   + Remove decoy sequences")}
   msnid <- apply_filter(msnid, "!isDecoy")
 
-  if (annotation == "GENCODE") {
-    # Remove duplicate GENCODE protein IDs using FASTA file headers
-    pttrn <- "(ENSP[^\\|]+).*"
-    unique_ids <- data.frame(id_orig = names(fst)) %>%
-      mutate(id_new = sub(pttrn, "\\1", id_orig),
-             duped = duplicated(id_new)) %>%
-      filter(!duped) %>%
-      pull(id_orig)
-    msnid <- apply_filter(msnid, "accession %in% unique_ids")
-    msnid$accession <- sub(pttrn, "\\1", msnid$accession)
-    fst <- fst[names(fst) %in% unique_ids]
-    names(fst) <- sub(pttrn, "\\1", names(fst))
+  # FASTA
+  fst <- Biostrings::readAAStringSet(fasta_file)
+  names(fst) <- sub(" .*", "", names(fst))
+  msnid$accession <- sub(" .*", "", msnid$accession)
 
-    # Sanity check
-    if (anyDuplicated(names(fst)) != 0) {
-      stop("Duplicate FASTA entry names!")
-    }
-  } else if (annotation == "UNIPROT") {
-    pttrn <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
-    # Extract middle portion of ID
-    msnid$accession <- sub(pttrn, "\\3", msnid$accession)
-    names(fst) <- sub(pttrn, "\\3", names(fst))
-  }
+  switch(annotation,
+         GENCODE = {
+           # Remove duplicate GENCODE protein IDs using FASTA file headers
+           pttrn <- "\\|.*"
+           unique_ids <- data.frame(id_orig = names(fst)) %>%
+             arrange(id_orig) %>%
+             mutate(id_new = sub(pttrn, "", id_orig)) %>%
+             filter(!duplicated(id_new)) %>%
+             pull(id_orig)
+           msnid <- apply_filter(msnid, "accession %in% unique_ids")
+           msnid$accession <- sub(pttrn, "", msnid$accession)
+           fst <- fst[names(fst) %in% unique_ids]
+           names(fst) <- sub(pttrn, "", names(fst))
+
+           # Sanity check
+           if (anyDuplicated(names(fst)) != 0) {
+             stop("Duplicate FASTA entry names!")
+           }
+         },
+         UNIPROT = {
+           pttrn <- "((sp|tr)\\|)?([^\\|]*)(.*)?"
+           # Extract middle portion of ID
+           msnid$accession <- sub(pttrn, "\\3", msnid$accession)
+           names(fst) <- sub(pttrn, "\\3", names(fst))
+         },
+         REFSEQ = {
+           # Extract first word (already done before switch)
+         })
 
   if (verbose) {message("   + Concatenating redundant protein matches")}
   msnid <- assess_redundant_protein_matches(msnid, collapse = ",")
@@ -212,15 +256,10 @@ run_plexedpiper <- function(msgf_output_folder,
   msnid <- assess_noninferable_proteins(msnid, collapse = ",")
 
   if (verbose) {message("   + Inference of parsimonius set")}
-  if (proteomics == "pr") {
-    prior <- character(0)
-  } else if (is.null(global_results)) {
-    if (verbose) {
-      message("     > Reference global proteomics dataset NOT provided")
-    }
+  if (proteomics == "pr" | is.null(global_results)) {
     prior <- character(0)
   } else {
-    global_ratios <- read.table(global_results, header=TRUE, sep="\t")
+    global_ratios <- read.table(global_results, header = TRUE, sep = "\t")
     prior <- unique(global_ratios$protein_id)
   }
 
@@ -234,13 +273,10 @@ run_plexedpiper <- function(msgf_output_folder,
     msnid <- compute_accession_coverage(msnid, fst)
   } else {
     if(verbose) {message("   + Mapping sites to protein sequence")}
-    if (proteomics == "ph") {
-      mod_char <- "*"
-    } else if (proteomics %in% c("ac", "ub")) {
-      mod_char <- "#"
-    } else {
-      stop("Proteomics variable not supported.")
-    }
+
+    mod_char <- case_when(proteomics == "ph" ~ "*",
+                          proteomics %in% c("ac", "ub") ~ "#",
+                          proteomics == "ox" ~ "@")
 
     msnid <- map_mod_sites(object          = msnid,
                            fasta           = fst,
@@ -253,6 +289,8 @@ run_plexedpiper <- function(msgf_output_folder,
     msnid <- extract_sequence_window(msnid, fasta = fst)
   }
 
+  invisible(gc())
+
   args <- list(msnid      = msnid,
                fractions  = study_design$fractions,
                samples    = study_design$samples,
@@ -262,11 +300,11 @@ run_plexedpiper <- function(msgf_output_folder,
                fasta_file = fasta_file)
 
   if (verbose) {message("- Making results tables.")}
-  rii_fun <- switch(EXPR = proteomics,
-                    pr = make_rii_peptide_gl,
+  rii_fun <- ifelse(proteomics == "pr",
+                    make_rii_peptide_gl,
                     make_rii_peptide_ph)
-  ratio_fun <- switch(EXPR = proteomics,
-                      pr = make_results_ratio_gl,
+  ratio_fun <- ifelse(proteomics == "pr",
+                      make_results_ratio_gl,
                       make_results_ratio_ph)
 
   results_ratio <- rii_peptide <- list()
@@ -276,10 +314,13 @@ run_plexedpiper <- function(msgf_output_folder,
     suppressMessages(results_ratio[[i]] <- do.call(ratio_fun, args))
   }
   # Combine tables and remove columns with all missing values
-  rii_peptide <- purrr::reduce(rii_peptide, .f = full_join) %>%
+  rii_peptide <- reduce(rii_peptide, .f = full_join) %>%
     dplyr::select(where(~ !all(is.na(.x))))
-  results_ratio <- purrr::reduce(results_ratio, .f = full_join) %>%
+  results_ratio <- reduce(results_ratio, .f = full_join) %>%
     dplyr::select(where(~ !all(is.na(.x))))
+
+  names(rii_peptide) <- make.names(names(rii_peptide))
+  names(results_ratio) <- make.names(names(results_ratio))
 
   if (verbose) {message("- Saving results.")}
 
@@ -314,9 +355,10 @@ run_plexedpiper <- function(msgf_output_folder,
       }
     }
   }
+
   if (save_env) {
     fileenv <- paste0(file_prefix, "-env.RData")
-    save.image(file = file.path(output_folder, fileenv))
+    save.image(file = file.path(output_folder, fileenv), compress = TRUE)
     if(verbose) {
       message("- R environment saved to ", file.path(output_folder, fileenv))
     }
@@ -331,3 +373,7 @@ run_plexedpiper <- function(msgf_output_folder,
   }
 }
 
+
+utils::globalVariables(
+  c("id_orig", "id_new")
+)

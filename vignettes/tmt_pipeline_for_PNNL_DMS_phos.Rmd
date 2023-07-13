@@ -74,7 +74,7 @@ newly suggested locations. Importantly it contains `AScore` column that
 signifies the confidence of PTM assingment. `AScore > 17` is considered 
 confident.
 ```{r ascore}
-ascore <- get_AScore_results(data_package_num)
+ascore <- read_AScore_results_from_DMS(data_package_num)
 msnid <- best_PTM_location_by_ascore(msnid, ascore)
 ```
 
@@ -149,7 +149,7 @@ masic_data <- filter_masic_data(masic_data, 0.5, 0)
 # Fetch study design tables
 
 ```{r study_design}
-study_design_tables <- get_study_design_by_dataset_package(data_package_num)
+study_design_tables <- read_study_design_from_DMS(data_package_num)
 fractions <- study_design_tables$fractions
 samples <- study_design_tables$samples
 references <- study_design_tables$references
