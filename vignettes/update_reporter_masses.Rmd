@@ -1,0 +1,16 @@
+```{r}
+### What to do if a TMT ion mass changes:
+
+# Load existing reporter converter:
+# reporter_converter <- PlexedPiper::reporter_converter
+
+# In this example, we want to add a second mass option for tmt11:
+# new_tmt11 <- reporter_converter$tmt11
+# new_tmt11[[11, 2]] <- sub("131.144", "131.145", new_tmt11[[11, 2]])
+
+# Add this new option back into the reporter converter:
+# reporter_converter$tmt11_new_131C <- new_tmt11
+
+# Re-save reporter converter:
+# save(reporter_converter, file="data/reporter_converter.RData")
+```

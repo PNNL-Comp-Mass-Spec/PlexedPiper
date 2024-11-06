@@ -42,7 +42,7 @@ Data package that contains phospho data mirroring
 package, suggested for testing purposes is `3625`.
 
 ```{r data package}
-data_package_num <- 3625
+data_package_num <- 6096
 ```
 
 
