@@ -295,7 +295,7 @@ converting_to_relative_to_reference <- function(quant_data,
     # converting sample names
     setkey(quant_data_i_l, ReporterAlias)
     setkey(sample_naming, ReporterAlias)
-    quant_data_i_l <- merge(quant_data_i_l, sample_naming)
+    quant_data_i_l <- merge(quant_data_i_l, sample_naming, allow.cartesian=T)
     quant_data_i_l[,ReporterAlias := NULL]
     out <- c(out, list(quant_data_i_l))
   }

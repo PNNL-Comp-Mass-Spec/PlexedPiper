@@ -1,16 +1,38 @@
 ```{r}
+devtools::build(vignettes = F)
+devtools::document()
 ### What to do if a TMT ion mass changes:
 
 # Load existing reporter converter:
-# reporter_converter <- PlexedPiper::reporter_converter
+reporter_converter <- PlexedPiper::reporter_converter
+# reporter_converter <- reporter_converter[-c(length(reporter_converter))]
 
-# In this example, we want to add a second mass option for tmt11:
-# new_tmt11 <- reporter_converter$tmt11
-# new_tmt11[[11, 2]] <- sub("131.144", "131.145", new_tmt11[[11, 2]])
+# In this example, we want to add a second mass option for all TMT sub-tables except `tmt6` and `tmt10`
+reporter_converter$tmt11_new <- dplyr::add_row(
+    reporter_converter$tmt11,
+    ReporterName = "131C_new",
+    ReporterIon = "Ion_131.145",
+    .after = 11
+)
+reporter_converter$tmt16_new <- dplyr::add_row(
+    reporter_converter$tmt16,
+    ReporterName = "131C_new",
+    ReporterIon = "Ion_131.145",
+    .after = 11
+)
+reporter_converter$tmt18_new <- dplyr::add_row(
+    reporter_converter$tmt18,
+    ReporterName = "131C_new",
+    ReporterIon = "Ion_131.145",
+    .after = 11
+)
 
 # Add this new option back into the reporter converter:
 # reporter_converter$tmt11_new_131C <- new_tmt11
 
 # Re-save reporter converter:
-# save(reporter_converter, file="data/reporter_converter.RData")
+save(reporter_converter, file = "../data/reporter_converter.RData")
+
+devtools::build(vignettes = F)
+devtools::document()
 ```
