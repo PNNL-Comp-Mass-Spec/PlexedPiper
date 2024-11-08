@@ -26,9 +26,8 @@ reporter_converter$tmt18_new <- dplyr::add_row(
 # Re-save reporter converter:
 save(reporter_converter, file = "../data/reporter_converter.RData")
 
-# Re-build & Document
-devtools::build(vignettes = F)
-devtools::document()
+# Re-install:
+devtools::install()
 ```
 
 ### Test:
@@ -40,16 +39,17 @@ fractions <- study_design_tables$fractions
 samples <- study_design_tables$samples
 references <- study_design_tables$references
 
-msnid <- read_msgf_data_from_DMS(data_package_num)
-masic_data <- read_masic_data_from_DMS(data_package_num,
+msnid <- PNNL.DMS.utils::read_msgf_data_from_DMS(data_package_num)
+masic_data <- PNNL.DMS.utils::read_masic_data_from_DMS(
+    data_package_num,
     interference_score = T
 )
 
-masic_data <- filter_masic_data(masic_data, 0.5, 0)
-msnid <- apply_filter(msnid, "!isDecoy")
+masic_data <- PlexedPiper::filter_masic_data(masic_data, 0.5, 0)
+msnid <- MSnID::apply_filter(msnid, "!isDecoy")
 
-aggregation_level <- c("SiteID")
-quant_cross_tab <- create_crosstab(
+aggregation_level <- c("Protein")
+quant_cross_tab <- PlexedPiper::create_crosstab(
     msnid,
     masic_data,
     aggregation_level,
