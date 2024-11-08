@@ -75,7 +75,7 @@ Phospho dataset involve Ascore jobs for improving phospho-site localization.
 There should be one Ascore job per data package. The fetched object is a 
 `data.frame` that links datasets, scans and original PTM localization to
 newly suggested locations. Importantly it contains `AScore` column that 
-signifies the confidence of PTM assingment. `AScore > 17` is considered 
+signifies the confidence of PTM assignment. `AScore > 17` is considered 
 confident.
 ```{r ascore}
 ascore <- read_AScore_results_from_DMS(data_package_num)
@@ -95,7 +95,7 @@ msnid <- filter_msgf_data_peptide_level(msnid, 0.01)
 ```
 
 
-## Inference of parsimonius set
+## Inference of parsimonious set
 
 ```{r inference}
 msnid <- infer_parsimonious_accessions(msnid)
@@ -131,7 +131,7 @@ head(psms(msnid))
 
 # Prepare MASIC reporter ion intensities
 
-Fetching and preparing reporter intensities based on MASIC ouput.
+Fetching and preparing reporter intensities based on MASIC output.
 ```{r masic}
 masic_data <- read_masic_data_from_DMS(data_package_num, 
                                        interference_score = T)
