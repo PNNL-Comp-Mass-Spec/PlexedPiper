@@ -1,18 +1,15 @@
-```{r}
-devtools::build(vignettes = F)
-devtools::document()
 ### What to do if a TMT ion mass changes:
-
+```{r eval=FALSE}
 # Load existing reporter converter:
 reporter_converter <- PlexedPiper::reporter_converter
-# reporter_converter <- reporter_converter[-c(length(reporter_converter))]
 
-# In this example, we want to add a second mass option for all TMT sub-tables except `tmt6` and `tmt10`
+# In this example, we want to add a second mass option for all TMT sub-tables
+#    except `tmt6` and `tmt10`
 reporter_converter$tmt11_new <- dplyr::add_row(
     reporter_converter$tmt11,
-    ReporterName = "131C_new",
+    ReporterName = "131C_new", # Append _new to ensure unique reporter names.
     ReporterIon = "Ion_131.145",
-    .after = 11
+    .after = 11 # Inserting in sorted order
 )
 reporter_converter$tmt16_new <- dplyr::add_row(
     reporter_converter$tmt16,
@@ -26,13 +23,38 @@ reporter_converter$tmt18_new <- dplyr::add_row(
     ReporterIon = "Ion_131.145",
     .after = 11
 )
-
-# Add this new option back into the reporter converter:
-# reporter_converter$tmt11_new_131C <- new_tmt11
-
 # Re-save reporter converter:
 save(reporter_converter, file = "../data/reporter_converter.RData")
 
+# Re-build & Document
 devtools::build(vignettes = F)
 devtools::document()
+```
+
+### Test:
+```{r}
+data_package_num <- 6096
+
+study_design_tables <- PlexedPiper::read_study_design(".") # Assume fractions.txt, references.txt, and samples.txt are in the current working directory
+fractions <- study_design_tables$fractions
+samples <- study_design_tables$samples
+references <- study_design_tables$references
+
+msnid <- read_msgf_data_from_DMS(data_package_num)
+masic_data <- read_masic_data_from_DMS(data_package_num,
+    interference_score = T
+)
+
+masic_data <- filter_masic_data(masic_data, 0.5, 0)
+msnid <- apply_filter(msnid, "!isDecoy")
+
+aggregation_level <- c("SiteID")
+quant_cross_tab <- create_crosstab(
+    msnid,
+    masic_data,
+    aggregation_level,
+    fractions, samples, references
+)
+print(dim(quant_cross_tab))
+head(quant_cross_tab)
 ```
