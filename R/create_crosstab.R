@@ -88,6 +88,15 @@ create_crosstab <- function(msnid,
   # Common datasets
   cd <- sort(intersect(msnid$Dataset, reporter_intensities$Dataset))
 
+    reporter_intensities_combined <- reporter_intensities
+    for (new_ion in names(PlexedPiper::reporter_converter_new_masses)) {
+      old_ion <- PlexedPiper::reporter_converter_new_masses[[new_ion]]
+      reporter_intensities_combined <- reporter_intensities_combined %>%
+        mutate(!!old_ion := dplyr::if_else(is.na(.[[old_ion]]), .[[new_ion]], .[[old_ion]])) %>%
+        select(-c(!!new_ion))
+    }
+    reporter_intensities <- reporter_intensities_combined
+
   # Datasets are in msnid, reporter_intensities, and fractions
   if (!identical(sort(fractions$Dataset), cd)) {
     warning(paste("All datasets must be present in msnid,",
@@ -295,7 +304,7 @@ converting_to_relative_to_reference <- function(quant_data,
     # converting sample names
     setkey(quant_data_i_l, ReporterAlias)
     setkey(sample_naming, ReporterAlias)
-    quant_data_i_l <- merge(quant_data_i_l, sample_naming, allow.cartesian=T)
+    quant_data_i_l <- merge(quant_data_i_l, sample_naming)
     quant_data_i_l[,ReporterAlias := NULL]
     out <- c(out, list(quant_data_i_l))
   }
