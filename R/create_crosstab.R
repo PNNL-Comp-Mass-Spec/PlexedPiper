@@ -89,6 +89,12 @@ create_crosstab <- function(msnid,
   cd <- sort(intersect(msnid$Dataset, reporter_intensities$Dataset))
 
   reporter_intensities_combined <- reporter_intensities
+  for (old_ion in unname(PlexedPiper::reporter_converter_new_masses)) {
+    if (!(old_ion %in% colnames(reporter_intensities_combined))) {
+      reporter_intensities_combined[, old_ion] <- NA
+    }
+  }
+
   for (new_ion in names(PlexedPiper::reporter_converter_new_masses)) {
     if (new_ion %in% colnames(reporter_intensities_combined)) {
       old_ion <- PlexedPiper::reporter_converter_new_masses[[new_ion]]
@@ -251,7 +257,11 @@ converting_to_relative_to_reference <- function(quant_data,
   }
 
   if (!exists("converter")) {
-    stop("No reporter ion converter tables match the reporter ions in MASIC data")
+    stop(glue::glue(
+      "No reporter ion converter tables match the reporter ions",
+      " in MASIC data. (The set of reporter ions present was",
+      " {as.character(reporter_ions)}.)"
+    ))
   }
 
   samples <- merge(samples, converter)

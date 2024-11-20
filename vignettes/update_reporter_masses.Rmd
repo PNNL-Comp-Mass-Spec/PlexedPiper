@@ -34,9 +34,10 @@ devtools::install()
 
 ### Test:
 ```{r}
-data_package_num <- 6096
+data_package_num <- 3625
 
-study_design_tables <- PlexedPiper::read_study_design(".") # Assume fractions.txt, references.txt, and samples.txt are in the current working directory
+# study_design_tables <- PlexedPiper::read_study_design(".") # Assume fractions.txt, references.txt, and samples.txt are in the current working directory
+study_design_tables <- PNNL.DMS.utils::read_study_design_from_DMS(data_package_num) # Assume fractions.txt, references.txt, and samples.txt are in the current working directory
 fractions <- study_design_tables$fractions
 samples <- study_design_tables$samples
 references <- study_design_tables$references
