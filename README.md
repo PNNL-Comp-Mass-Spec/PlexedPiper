@@ -1,6 +1,7 @@
 # PlexedPiper
 
 <!-- badges: start -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14708767.svg)](https://doi.org/10.5281/zenodo.14708767)
 [![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/workflows/R-CMD-check/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions)
 [![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
@@ -36,13 +37,12 @@ vignette("tmt_pipeline_v1")
 ### Example Data
 
 A companion R package with test data based on the MoTrPAC pilot study is available
-here
-
+in the PlexedPiperTestData GitHub repository:
 * [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
 
 ## Docker/Linux installation
 
-PlexedPiper can be run within a [Docker Container](https://www.docker.com/resources/what-container)
+PlexedPiper can be run within a [Docker Container](https://www.docker.com/resources/what-container/)
 
 * This example `Dockerfile` shows the required system libraries, starting with the base [rocker/TidyVerse](https://hub.docker.com/r/rocker/tidyverse/dockerfile) image
 
@@ -81,15 +81,15 @@ If your location of `libtdsodbc.so` differs, use the proper location.
 
 ### Installation Tips
 
-If within PNNL network there may be an error associated with `mount_smbfs`. This happens due to network access credentials. Options are either to wait or proactively access one of the PNNL servers. For example try mounting one of the public directories from the terminal window. Enter your network password once requested. 
+If within PNNL network there may be an error associated with `mount_smbfs`. This happens due to network access credentials. Options are either to wait or proactively access one of the PNNL servers. For example try mounting one of the public directories from the terminal window. Enter your network password once requested.
 `mount -t smbfs //protoapps/DataPkgs/Public/ ~/temp_msms_results`
 Then compilation of the vignettes that imply access to PNNL DMS should proceed smoothly.
 
 
-Original Location
-====
-The original location is on the [vladpetyuk](https://github.com/vladpetyuk) account, repo [PlexedPiper](https://github.com/vladpetyuk/PlexedPiper).
+## Previous Location
 
+The previous location for PlexedPiper is on the [vladpetyuk](https://github.com/vladpetyuk) account, repo [PlexedPiper](https://github.com/vladpetyuk/PlexedPiper).
 
+## Citation Guidance
 
-
+1. Petyuk, V. (2025). PlexedPiper. Zenodo. https://doi.org/10.5281/zenodo.14708767
