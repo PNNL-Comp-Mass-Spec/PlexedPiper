@@ -1,6 +1,7 @@
 # PlexedPiper
 
 <!-- badges: start -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14708767.svg)](https://doi.org/10.5281/zenodo.14708767)
 [![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/workflows/R-CMD-check/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions)
 [![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
@@ -89,6 +90,10 @@ Then compilation of the vignettes that imply access to PNNL DMS should proceed s
 Original Location
 ====
 The original location is on the [vladpetyuk](https://github.com/vladpetyuk) account, repo [PlexedPiper](https://github.com/vladpetyuk/PlexedPiper).
+
+## Citation Guidance
+
+1. Petyuk, V. (2025). PlexedPiper. Zenodo. https://doi.org/10.5281/zenodo.14708767 
 
 
 
