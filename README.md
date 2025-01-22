@@ -80,9 +80,12 @@ If your location of `libtdsodbc.so` differs, use the proper location.
 
 ### Installation Tips
 
-If within PNNL network there may be an error associated with `mount_smbfs`. This happens due to network access credentials. Options are either to wait or proactively access one of the PNNL servers. For example try mounting one of the public directories from the terminal window. Enter your network password once requested.
-`mount -t smbfs //protoapps/DataPkgs/Public/ ~/temp_msms_results`
-Then compilation of the vignettes that imply access to PNNL DMS should proceed smoothly.
+If within the PNNL network there may be an error associated with `mount_smbfs`. This happens due to network access credentials. Options are either to wait or proactively access one of the PNNL servers. For example try mounting one of the public directories from the terminal window. Enter your network password once requested.
+
+```Shell
+mount -t smbfs //protoapps/DataPkgs/Public/ ~/temp_msms_results
+```
+Compilation of the vignettes that imply access to PNNL DMS should now proceed smoothly.
 
 ## Previous Location
 
