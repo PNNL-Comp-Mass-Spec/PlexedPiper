@@ -1,0 +1,63 @@
+### What to do if a TMT ion mass changes:
+```{r eval=FALSE}
+# Load existing reporter converter:
+# reporter_converter <- PlexedPiper::reporter_converter
+
+# # In this example, we want to add a second mass option for all TMT sub-tables
+# #    except `tmt6` and `tmt10`
+# reporter_converter$tmt11_new <- dplyr::add_row(
+#     reporter_converter$tmt11,
+#     ReporterName = "131C_new", # Append _new to ensure unique reporter names.
+#     ReporterIon = "Ion_131.145",
+#     .after = 11 # Inserting in sorted order
+# )
+# reporter_converter$tmt16_new <- dplyr::add_row(
+#     reporter_converter$tmt16,
+#     ReporterName = "131C_new",
+#     ReporterIon = "Ion_131.145",
+#     .after = 11
+# )
+# reporter_converter$tmt18_new <- dplyr::add_row(
+#     reporter_converter$tmt18,
+#     ReporterName = "131C_new",
+#     ReporterIon = "Ion_131.145",
+#     .after = 11
+# )
+# Re-save reporter converter:
+save(reporter_converter, file = "../data/reporter_converter.RData")
+
+reporter_converter_new_masses <- list("Ion_131.145" = "Ion_131.144")
+save(reporter_converter_new_masses, file="data/reporter_converter_new_masses.RData")
+# Re-install:
+devtools::install()
+```
+
+### Test:
+```{r}
+data_package_num <- 3625
+
+# study_design_tables <- PlexedPiper::read_study_design(".") # Assume fractions.txt, references.txt, and samples.txt are in the current working directory
+study_design_tables <- PNNL.DMS.utils::read_study_design_from_DMS(data_package_num) # Assume fractions.txt, references.txt, and samples.txt are in the current working directory
+fractions <- study_design_tables$fractions
+samples <- study_design_tables$samples
+references <- study_design_tables$references
+
+msnid <- PNNL.DMS.utils::read_msgf_data_from_DMS(data_package_num)
+masic_data <- PNNL.DMS.utils::read_masic_data_from_DMS(
+    data_package_num,
+    interference_score = T
+)
+
+masic_data <- PlexedPiper::filter_masic_data(masic_data, 0.5, 0)
+msnid <- MSnID::apply_filter(msnid, "!isDecoy")
+library(PlexedPiper)
+aggregation_level <- c("Protein")
+quant_cross_tab <- PlexedPiper::create_crosstab(
+    msnid,
+    masic_data,
+    aggregation_level,
+    fractions, samples, references
+)
+print(dim(quant_cross_tab))
+head(quant_cross_tab)
+```

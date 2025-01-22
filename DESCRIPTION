@@ -9,7 +9,7 @@ Description: Pipeline for isobaric quantification.
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Depends:
     MSnID (>= 1.25.2)
 Imports:
