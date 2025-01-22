@@ -264,7 +264,7 @@ converting_to_relative_to_reference <- function(quant_data,
 
     # now make wide by ReporterAlias
     quant_data_i_w <- dcast(quant_data_i,
-                            Specie ~ ReporterAlias,
+                            Specie ~ ReporterAlias, fun.aggregate = mean,
                             value.var='Abundance')
     species <- quant_data_i_w[,"Specie"]
     quant_data_i_w <- quant_data_i_w[,!"Specie"]
