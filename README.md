@@ -6,7 +6,6 @@
 [![R-CMD-check](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-
 R package used at PNNL for processing isobaric labeling (e.g. TMT) proteomics
 data. The key inputs are:
 
@@ -85,11 +84,10 @@ If within PNNL network there may be an error associated with `mount_smbfs`. This
 `mount -t smbfs //protoapps/DataPkgs/Public/ ~/temp_msms_results`
 Then compilation of the vignettes that imply access to PNNL DMS should proceed smoothly.
 
-
 ## Previous Location
 
 The previous location for PlexedPiper is on the [vladpetyuk](https://github.com/vladpetyuk) account, repo [PlexedPiper](https://github.com/vladpetyuk/PlexedPiper).
 
 ## Citation Guidance
 
-1. Petyuk, V. (2025). PlexedPiper. Zenodo. https://doi.org/10.5281/zenodo.14708767
+1. Petyuk, V. (2025). PlexedPiper: Pipeline for isobaric quantification. Zenodo. https://doi.org/10.5281/zenodo.14708767
